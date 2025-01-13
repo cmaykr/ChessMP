@@ -1,17 +1,37 @@
 #include "piece.hpp"
 
-Piece::Piece(SDL_Rect const& position, std::string const& texturePosition, PieceType const& pieceType)
-    : _posiition(position), texturePosition(texturePosition), pieceType(pieceType)
+Piece::Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite)
+    : texturePath(texturePath), pieceType(pieceType), isWhite(isWhite)
 {
 
-}
-
-SDL_Rect Piece::getPosition() const
-{
-    return _posiition;
 }
 
 std::string Piece::getTexture() const
 {
-    return texturePosition;
+    return texturePath;
+}
+
+PieceType Piece::getType() const
+{
+    return pieceType;
+}
+
+bool Piece::isPieceWhite() const
+{
+    return isWhite;
+}
+
+void Piece::setTexture(std::string const& newPath)
+{
+    
+}
+
+void Piece::setType(PieceType const& newType)
+{
+
+}
+
+void Piece::setIsWhite(bool isWhite)
+{
+
 }

@@ -17,12 +17,19 @@ enum PieceType
 class Piece
 {
 public:
-    Piece(SDL_Rect const& position, std::string const& texturePosition, PieceType const& pieceType);
+    Piece() = default;
+    Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite);
 
-    SDL_Rect getPosition() const;
     std::string getTexture() const;
+    PieceType getType() const;
+    bool isPieceWhite() const;
+
+    void setTexture(std::string const& newPath);
+    void setType(PieceType const& newType);
+    void setIsWhite(bool isWhite);
 private:
-    SDL_Rect _posiition;
-    std::string texturePosition;
+    std::string texturePath;
     PieceType pieceType;
+
+    bool isWhite{};
 };
