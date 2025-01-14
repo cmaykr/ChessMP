@@ -17,7 +17,6 @@ enum PieceType
 class Piece
 {
 public:
-    Piece() = default;
     Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite);
 
     std::string getTexture() const;

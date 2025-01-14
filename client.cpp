@@ -5,6 +5,15 @@
 
 #include "piece.hpp"
 
+SDL_Texture* getTexture(SDL_Renderer *renderer, std::string const& texturePath)
+{
+    SDL_Surface *surface = IMG_Load(texturePath.c_str());
+    SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    return tex;
+}
+
 int main()
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -25,25 +34,24 @@ int main()
     box.x = 20;
     box.y = 20;
 
-    Piece piece {box, "models/pawn.png", PieceType::Pawn};
-    SDL_Surface *surface = IMG_Load("models/pawn.png");
-    SDL_Texture *pawn = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = IMG_Load("models/rook.png");
-    SDL_Texture *rook = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = IMG_Load("models/knight.png");
-    SDL_Texture *knight = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = IMG_Load("models/bishop.png");
-    SDL_Texture *bishop = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = IMG_Load("models/queen.png");
-    SDL_Texture *queen = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = IMG_Load("models/king.png");
-    SDL_Texture *king = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
+    Piece pawn {"models/pawn.png", PieceType::Pawn, true};
+    Piece rook {"models/rook.png", PieceType::Rook, true};
+    Piece knight {"models/knight.png", PieceType::Knight, true};
+    Piece bishop {"models/bishop.png", PieceType::Bishop, true};
+    Piece queen {"models/queen.png", PieceType::Queen, true};
+    Piece king {"models/king.png", PieceType::King, true};
+    Piece pawnB {"models/pawn.png", PieceType::Pawn, false};
+    Piece rookB {"models/rook.png", PieceType::Rook, false};
+    Piece knightB {"models/knight.png", PieceType::Knight, false};
+    Piece bishopB {"models/bishop.png", PieceType::Bishop, false};
+    Piece queenB {"models/queen.png", PieceType::Queen, false};
+    Piece kingB {"models/king.png", PieceType::King, false};
+    SDL_Texture *p = getTexture(renderer, pawn.getTexture());
+    SDL_Texture *r = getTexture(renderer, rook.getTexture());
+    SDL_Texture *k = getTexture(renderer, knight.getTexture());
+    SDL_Texture *b = getTexture(renderer, bishop.getTexture());
+    SDL_Texture *q = getTexture(renderer, queen.getTexture());
+    SDL_Texture *ki = getTexture(renderer, king.getTexture());
     SDL_Rect pos;
     pos.h = 40;
     pos.w = 40;
@@ -60,32 +68,62 @@ int main()
     int yStart{h / 2 - size*4};
 
     std::cout << "Init board" << std::endl;
-    std::array<std::array<PieceType, 8>, 8> board{};
-    board[0][7] = PieceType::Rook;
-    board[1][7] = PieceType::Knight;
-    board[2][7] = PieceType::Bishop;
-    board[3][7] = PieceType::Queen;
-    board[4][7] = PieceType::King;
-    board[5][7] = PieceType::Bishop;
-    board[6][7] = PieceType::Knight;
-    board[7][7] = PieceType::Rook;
+    std::array<std::array<Piece*, 8>, 8> board{};
+    board[0][7] = &rook;
+    board[1][7] = &knight;
+    board[2][7] = &bishop;
+    board[3][7] = &queen;
+    board[4][7] = &king;
+    board[5][7] = &bishop;
+    board[6][7] = &knight;
+    board[7][7] = &rook;
 
     for (int i{}; i < 8; i++)
     {
-        board[i][6] = PieceType::Pawn;
+        board[i][6] = &pawn;
     }
 
+    board[0][0] = &rookB;
+    board[1][0] = &knightB;
+    board[2][0] = &bishopB;
+    board[3][0] = &queenB;
+    board[4][0] = &kingB;
+    board[5][0] = &bishopB;
+    board[6][0] = &knightB;
+    board[7][0] = &rookB;
+
+    for (int i{}; i < 8; i++)
+    {
+        board[i][1] = &pawnB;
+    }
+
+    int x, y;
+
+    int iterations{};
     std::cout << "Start" << std::endl;
     bool running = true;
     while (running)
     {
         SDL_Event e;
-        while (SDL_PollEvent(&e))
+        while (SDL_PollEvent(&e) == 1)
         {
             switch (e.type)
             {
                 case SDL_QUIT:
                     running = false;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    SDL_GetMouseState(&x, &y);
+                    int boardX = (x - w / 2 + size*4) / 40;
+                    int boardY = (y - h / 2 + size*4) / 40;
+                    std::cout << "X: " << boardX << " Y: " << boardY << std::endl;
+
+                    Piece* piece = board[boardX][boardY];
+                    if (boardY + 1 < 8)
+                    {
+                        board[boardX][boardY+1] = piece;
+                        board[boardX][boardY] = nullptr;
+                    }
                     break;
             }
         }
@@ -111,6 +149,7 @@ int main()
             box.x = xStart;
         }
 
+        int piecesDrawn{};
         for (int i{}; i < 8; i++)
         {
             for (int j{}; j < 8; j++)
@@ -121,25 +160,30 @@ int main()
                 position.x = xStart + i*size;
                 position.y = yStart + j*size;
                 SDL_Texture *temp;
-                switch (board[i][j])
+
+                if (board[i][j] == nullptr)
+                {
+                    continue;;
+                }
+                switch (board[i][j]->getType())
                 {
                     case PieceType::Pawn:
-                        temp = pawn;
+                        temp = p;
                         break;
                     case PieceType::Rook:
-                        temp = rook;
+                        temp = r;
                         break;
                     case PieceType::Bishop:
-                        temp = bishop;
+                        temp = b;
                         break;
                     case PieceType::King:
-                        temp = king;
+                        temp = ki;
                         break;
                     case PieceType::Queen:
-                        temp = queen;
+                        temp = q;
                         break;
                     case PieceType::Knight:
-                        temp = knight;
+                        temp = k;
                         break;
                     default:
                         temp = nullptr;
