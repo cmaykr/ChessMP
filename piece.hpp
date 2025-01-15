@@ -5,7 +5,7 @@
 
 enum PieceType
 {
-    Default,
+    UNKNOWN = 0,
     King,
     Queen,
     Rook,
@@ -17,8 +17,11 @@ enum PieceType
 class Piece
 {
 public:
+    Piece();
     Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite);
 
+
+    bool isEmpty() const;
     std::string getTexture() const;
     PieceType getType() const;
     bool isPieceWhite() const;
@@ -29,6 +32,5 @@ public:
 private:
     std::string texturePath;
     PieceType pieceType;
-
-    bool isWhite{};
+    bool isWhite;
 };

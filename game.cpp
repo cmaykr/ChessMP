@@ -4,85 +4,58 @@
 #include <SDL2/SDL_image.h>
 
 #include "piece.hpp"
+#include "resourceManager.hpp"
 
 Game::Game(std::string const& title, int width, int height)
+    : xBoardPos{0}, yBoardPos{0}
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        std::cerr << "SDL_init error: " << SDL_GetError() << std::endl;
+    Piece pawn {"models/pawn.png", PieceType::Pawn, true};
+    Piece rook {"models/rook.png", PieceType::Rook, true};
+    Piece knight {"models/knight.png", PieceType::Knight, true};
+    Piece bishop {"models/bishop.png", PieceType::Bishop, true};
+    Piece queen {"models/queen.png", PieceType::Queen, true};
+    Piece king {"models/king.png", PieceType::King, true};
+    Piece pawnB {"models/pawn.png", PieceType::Pawn, false};
+    Piece rookB {"models/rook.png", PieceType::Rook, false};
+    Piece knightB {"models/knight.png", PieceType::Knight, false};
+    Piece bishopB {"models/bishop.png", PieceType::Bishop, false};
+    Piece queenB {"models/queen.png", PieceType::Queen, false};
+    Piece kingB {"models/king.png", PieceType::King, false};
 
-    SDL_Window *window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
-    if (window == NULL)
-        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
+    board[0][7] = rook;
+    board[1][7] = knight;
+    board[2][7] = bishop;
+    board[3][7] = queen;
+    board[4][7] = king;
+    board[5][7] = bishop;
+    board[6][7] = knight;
+    board[7][7] = rook;
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
-    if (renderer == NULL)
-        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
+    for (int i{}; i < 8; i++)
+    {
+        board[i][6] = pawn;
+    }
+
+    board[0][0] = rookB;
+    board[1][0] = knightB;
+    board[2][0] = bishopB;
+    board[3][0] = queenB;
+    board[4][0] = kingB;
+    board[5][0] = bishopB;
+    board[6][0] = knightB;
+    board[7][0] = rookB;
+
+    for (int i{}; i < 8; i++)
+    {
+        board[i][1] = pawnB;
+    }
 }
 
 void Game::run()
 {
-    SDL_Rect box{};
-    box.x = 20;
-    box.y = 20;
+}
 
-    Piece piece {box, "models/pawn.png", PieceType::Pawn};
-    SDL_Surface *surface = IMG_Load(piece.getTexture().c_str());
-    SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    SDL_Rect pos;
-    pos.h = 40;
-    pos.w = 40;
-
-    int size = 40;
-
-    box.w = size;
-    box.h = size;
-
-    int w;
-    int h;
-    SDL_GetWindowSize(window, &w, &h);
-    int xStart{w / 2 - size*4};
-    int yStart{h / 2 - size*4};
-    bool running = true;
-    while (running)
-    {
-        SDL_Event e;
-        while (SDL_PollEvent(&e))
-        {
-            switch (e.type)
-            {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-            }
-        }
-
-        SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-        SDL_RenderClear(renderer);
-        box.x = xStart;
-        box.y = yStart;
-
-        for (int i{}; i < 8; i++)
-        {
-            for (int j{}; j < 8; j++)
-            {
-                if ((i + j) % 2 == 0)
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                else
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-                SDL_RenderFillRect(renderer, &box);
-
-                box.x += size;
-            }
-            box.y += size;
-            box.x = xStart;
-        }
-        SDL_SetTextureColorMod(tex, 255, 255, 0);
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        //pos = piece.getPosition();
-        SDL_GetMouseState( &pos.x, &pos.y);
-        SDL_RenderCopy(renderer, tex, NULL, &pos);
-
-        SDL_RenderPresent(renderer);
-    }
+std::array<std::array<Piece, 8>, 8>& Game::getBoard()
+{
+    return board;
 }

@@ -1,9 +1,23 @@
 #include "piece.hpp"
 
+Piece::Piece()
+    : texturePath(""), pieceType(PieceType::UNKNOWN), isWhite(false)
+{
+
+}
+
 Piece::Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite)
     : texturePath(texturePath), pieceType(pieceType), isWhite(isWhite)
 {
 
+}
+
+bool Piece::isEmpty() const
+{
+    if (pieceType == PieceType::UNKNOWN)
+        return true;
+    
+    return false;
 }
 
 std::string Piece::getTexture() const

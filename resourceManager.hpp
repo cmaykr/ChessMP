@@ -30,6 +30,7 @@ public:
         if (renderer == nullptr)
         {
             std::cerr << "Error: Renderer is not initialized." << std::endl;
+            exit(1);
             return;
         }
         this->renderer = renderer;
@@ -41,15 +42,16 @@ public:
         if (surface == nullptr)
         {
             std::cerr << "Error occured while creating surface for texture: " << SDL_GetError() << std::endl;
+            exit(1);
             return false;
         }
-        //SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer.get(), surface);
         std::unique_ptr<SDL_Texture, TexDeleter> tex = std::unique_ptr<SDL_Texture, TexDeleter>(SDL_CreateTextureFromSurface(renderer.get(), surface));
         SDL_FreeSurface(surface);
 
         if (tex == nullptr)
         {
             std::cerr << "Error occured while creating texture: " << SDL_GetError() << std::endl;
+            exit(1);
             return false;
         }
         textures[texturePath] = std::move(tex);
