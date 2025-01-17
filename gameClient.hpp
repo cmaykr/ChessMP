@@ -16,6 +16,9 @@ public:
     ~GameClient() = default;
 
     void run();
+
+    bool tryMove(int initX, int initY, int boardX, int boardY);
 private:
+    void move(int initX, int initY, int boardX, int boardY);
     std::array<std::array<Piece, 8>, 8> localBoard;
 };

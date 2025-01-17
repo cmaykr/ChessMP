@@ -20,6 +20,93 @@ struct RendererDeleter
     }
 };
 
+/// @brief Attempts to move a piece on the board. Use this method to move pieces on the board, because a move needs to be checked for several rules before moving.
+/// @return Returns true if move is valid according to all checked rules, false otherwise.
+bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
+{
+    Piece piece = localBoard[startX][startY];
+    switch (piece.getType())
+    {
+        case Pawn:
+        {
+            if (targetX == startX && (targetY) == startY + 1)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        case Rook:
+        {
+            if (targetX == startX || targetY == startY)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        case King:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+
+            bool validMoveXAxis = xDiff == 1 || xDiff == 0;
+            bool validMoveYAxis = yDiff == 1 || yDiff == 0;
+            if (validMoveXAxis && validMoveYAxis)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        case Bishop:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == yDiff)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        case Queen:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == yDiff || targetX == startX || targetY == startY)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        case Knight:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == 2 && yDiff == 1)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            else if (yDiff == 2 && xDiff == 1)
+            {
+                move(startX, startY, targetX, targetY);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    return false;
+}
+
+void GameClient::move(int initX, int initY, int boardX, int boardY)
+{
+    Piece piece = localBoard[initX][initY];
+    if (localBoard[boardX][boardY].isEmpty())
+    {
+        localBoard[boardX][boardY] = piece;
+        localBoard[initX][initY] = Piece{};
+    }
+}
+
 void GameClient::run()
 {
     ResourceManager& instance = ResourceManager::getInstance();
@@ -85,6 +172,13 @@ void GameClient::run()
 
     std::cout << "Start" << std::endl;
     bool running = true;
+
+    bool mouseDown = false;
+    bool lastMouseDown = false;
+    int initX{};
+    int initY{};
+    bool clickMove = false;
+    Piece chosenPiece{};
     while (running)
     {
         SDL_Event e;
@@ -96,17 +190,50 @@ void GameClient::run()
                     running = false;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                {
                     SDL_GetMouseState(&x, &y);
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
 
-                    Piece piece = localBoard[boardX][boardY];
-                    if (localBoard[boardX][boardY+1].isEmpty())
+                    lastMouseDown = mouseDown;
+                    mouseDown = true;
+
+                    if (clickMove)
                     {
-                        localBoard[boardX][boardY+1] = piece;
-                        localBoard[boardX][boardY] = Piece{};
+                        if (tryMove(initX, initY, boardX, boardY))
+                        {
+                            std::cout << "Success" << std::endl;
+                        }
+
+                        clickMove = false;
+                    }
+                    else
+                    {
+                        initX = boardX;
+                        initY = boardY;
                     }
                     break;
+                }
+                case SDL_MOUSEBUTTONUP:
+                {
+                    SDL_GetMouseState(&x, &y);
+                    int boardX = (x - w / 2 + size*4) / 40;
+                    int boardY = (y - h / 2 + size*4) / 40;
+                    
+                    if (initX == boardX && initY == boardY)
+                    {
+                        clickMove = true;
+                        chosenPiece = localBoard[boardX][initY];
+                        initX = boardX;
+                        initY = boardY;
+                    }
+                    else if (tryMove(initX, initY, boardX, boardY))
+                    {
+                        chosenPiece = Piece{};
+                    }
+
+                    break;
+                }
             }
         }
 
