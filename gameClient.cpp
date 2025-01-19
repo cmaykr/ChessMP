@@ -25,6 +25,8 @@ struct RendererDeleter
 bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
 {
     Piece piece = localBoard[startX][startY];
+    
+    bool validMove = false;
     switch (piece.getType())
     {
         case Pawn:
@@ -32,6 +34,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (targetX == startX && (targetY) == startY + 1)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -40,6 +43,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (targetX == startX || targetY == startY)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -53,6 +57,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (validMoveXAxis && validMoveYAxis)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -63,6 +68,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (xDiff == yDiff)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -73,6 +79,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (xDiff == yDiff || targetX == startX || targetY == startY)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -83,10 +90,12 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             if (xDiff == 2 && yDiff == 1)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             else if (yDiff == 2 && xDiff == 1)
             {
                 move(startX, startY, targetX, targetY);
+                validMove = true;
             }
             break;
         }
@@ -94,7 +103,7 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             break;
     }
 
-    return false;
+    return validMove;
 }
 
 void GameClient::move(int initX, int initY, int boardX, int boardY)
@@ -222,10 +231,18 @@ void GameClient::run()
                     
                     if (initX == boardX && initY == boardY)
                     {
-                        clickMove = true;
-                        chosenPiece = localBoard[boardX][initY];
-                        initX = boardX;
-                        initY = boardY;
+                        if (!clickMove)
+                        {
+                            clickMove = true;
+                            chosenPiece = localBoard[boardX][initY];
+                            initX = boardX;
+                            initY = boardY;
+                        } else
+                        {
+                            std::cout << "Unchosen" << std::endl;
+                            clickMove = false;
+                            chosenPiece = Piece{};
+                        }
                     }
                     else if (tryMove(initX, initY, boardX, boardY))
                     {
