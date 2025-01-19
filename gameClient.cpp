@@ -33,7 +33,6 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
         {
             if (targetX == startX && (targetY) == startY + 1)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             break;
@@ -42,7 +41,6 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
         {
             if (targetX == startX || targetY == startY)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             break;
@@ -56,7 +54,6 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             bool validMoveYAxis = yDiff == 1 || yDiff == 0;
             if (validMoveXAxis && validMoveYAxis)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             break;
@@ -67,7 +64,6 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             break;
@@ -78,7 +74,6 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff || targetX == startX || targetY == startY)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             break;
@@ -89,12 +84,11 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             int yDiff = abs(startY - targetY);
             if (xDiff == 2 && yDiff == 1)
             {
-                move(startX, startY, targetX, targetY);
                 validMove = true;
             }
             else if (yDiff == 2 && xDiff == 1)
             {
-                move(startX, startY, targetX, targetY);
+                
                 validMove = true;
             }
             break;
@@ -103,6 +97,8 @@ bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
             break;
     }
 
+    if (validMove)
+        move(startX, startY, targetX, targetY);
     return validMove;
 }
 
@@ -119,13 +115,16 @@ void GameClient::move(int initX, int initY, int boardX, int boardY)
 void GameClient::run()
 {
     ResourceManager& instance = ResourceManager::getInstance();
+    std::cout << "Initializing SDL" << std::endl;
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
         std::cerr << "SDL_init error: " << SDL_GetError() << std::endl;
 
+    std::cout << "Creating SDL window" << std::endl;
     SDL_Window *window = SDL_CreateWindow("ChessMP", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
     if (window == NULL)
         std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
 
+    std::cout << "Creating SDL renderer" << std::endl;
     std::shared_ptr<SDL_Renderer> renderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(window, -1, 0), RendererDeleter());
     if (renderer == nullptr)
         std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
@@ -138,6 +137,7 @@ void GameClient::run()
     box.x = 20;
     box.y = 20;
 
+    std::cout << "Loading resources" << std::endl;
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
     Piece knight {"models/knight.png", PieceType::Knight, true};
@@ -179,15 +179,15 @@ void GameClient::run()
     
     int x, y;
 
-    std::cout << "Start" << std::endl;
     bool running = true;
-
     bool mouseDown = false;
     bool lastMouseDown = false;
     int initX{};
     int initY{};
     bool clickMove = false;
     Piece chosenPiece{};
+
+    std::cout << "Starting game loop" << std::endl;
     while (running)
     {
         SDL_Event e;
@@ -209,10 +209,7 @@ void GameClient::run()
 
                     if (clickMove)
                     {
-                        if (tryMove(initX, initY, boardX, boardY))
-                        {
-                            std::cout << "Success" << std::endl;
-                        }
+                        tryMove(initX, initY, boardX, boardY);
 
                         clickMove = false;
                     }
@@ -231,7 +228,7 @@ void GameClient::run()
                     
                     if (initX == boardX && initY == boardY)
                     {
-                        if (!clickMove)
+                        if (!clickMove && !localBoard[boardX][boardY].isEmpty())
                         {
                             clickMove = true;
                             chosenPiece = localBoard[boardX][initY];
@@ -239,7 +236,6 @@ void GameClient::run()
                             initY = boardY;
                         } else
                         {
-                            std::cout << "Unchosen" << std::endl;
                             clickMove = false;
                             chosenPiece = Piece{};
                         }
