@@ -6,10 +6,16 @@
 
 #include "resourceManager.hpp"
 
-GameClient::GameClient(std::array<std::array<Piece, 8>, 8> &board)
-    : localBoard{board}
+GameClient::GameClient(Game* game)
+    : localBoard{game->getBoard()}, game(game)
 {
-
+    if (game == nullptr)
+    {
+        std::cerr << "Error: Game is not initialized in constructor." << std::endl;
+        exit(1);
+        return;
+    }
+    //localBoard = game->getBoard();
 }
 
 struct RendererDeleter
@@ -20,100 +26,15 @@ struct RendererDeleter
     }
 };
 
-/// @brief Attempts to move a piece on the board. Use this method to move pieces on the board, because a move needs to be checked for several rules before moving.
-/// @return Returns true if move is valid according to all checked rules, false otherwise.
-bool GameClient::tryMove(int startX, int startY, int targetX, int targetY)
-{
-    Piece piece = localBoard[startX][startY];
-    
-    bool validMove = false;
-    switch (piece.getType())
-    {
-        case Pawn:
-        {
-            if (targetX == startX && (targetY) == startY + 1)
-            {
-                validMove = true;
-            }
-            break;
-        }
-        case Rook:
-        {
-            if (targetX == startX || targetY == startY)
-            {
-                validMove = true;
-            }
-            break;
-        }
-        case King:
-        {
-            int xDiff = abs(startX - targetX);
-            int yDiff = abs(startY - targetY);
-
-            bool validMoveXAxis = xDiff == 1 || xDiff == 0;
-            bool validMoveYAxis = yDiff == 1 || yDiff == 0;
-            if (validMoveXAxis && validMoveYAxis)
-            {
-                validMove = true;
-            }
-            break;
-        }
-        case Bishop:
-        {
-            int xDiff = abs(startX - targetX);
-            int yDiff = abs(startY - targetY);
-            if (xDiff == yDiff)
-            {
-                validMove = true;
-            }
-            break;
-        }
-        case Queen:
-        {
-            int xDiff = abs(startX - targetX);
-            int yDiff = abs(startY - targetY);
-            if (xDiff == yDiff || targetX == startX || targetY == startY)
-            {
-                validMove = true;
-            }
-            break;
-        }
-        case Knight:
-        {
-            int xDiff = abs(startX - targetX);
-            int yDiff = abs(startY - targetY);
-            if (xDiff == 2 && yDiff == 1)
-            {
-                validMove = true;
-            }
-            else if (yDiff == 2 && xDiff == 1)
-            {
-                
-                validMove = true;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
-    if (validMove)
-        move(startX, startY, targetX, targetY);
-    return validMove;
-}
-
-void GameClient::move(int initX, int initY, int boardX, int boardY)
-{
-    Piece piece = localBoard[initX][initY];
-    if (localBoard[boardX][boardY].isEmpty())
-    {
-        localBoard[boardX][boardY] = piece;
-        localBoard[initX][initY] = Piece{};
-    }
-}
-
 void GameClient::run()
 {
+    if (game == nullptr)
+    {
+        std::cerr << "Error: Game is not initialized." << std::endl;
+        exit(1);
+        return;
+    }
+
     ResourceManager& instance = ResourceManager::getInstance();
     std::cout << "Initializing SDL" << std::endl;
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -209,7 +130,7 @@ void GameClient::run()
 
                     if (clickMove)
                     {
-                        tryMove(initX, initY, boardX, boardY);
+                        game->tryMove(initX, initY, boardX, boardY, localBoard);
 
                         clickMove = false;
                     }
@@ -240,7 +161,7 @@ void GameClient::run()
                             chosenPiece = Piece{};
                         }
                     }
-                    else if (tryMove(initX, initY, boardX, boardY))
+                    else if (game->tryMove(initX, initY, boardX, boardY, localBoard))
                     {
                         chosenPiece = Piece{};
                     }

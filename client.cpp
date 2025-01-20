@@ -9,9 +9,9 @@
 
 int main()
 {
-    Game game{"ChessMP", 640, 480};
+    Game game {"ChessMP", 640, 480};
 
-    GameClient gameClient{game.getBoard()};
+    GameClient gameClient{&game};
     gameClient.run();
     
     return 0;

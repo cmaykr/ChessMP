@@ -1,0 +1,24 @@
+{
+    "configurations": [
+      {
+        "type": "cppdbg",
+        "request": "launch",
+        "name": "Launch chessClient",
+        "program": "${workspaceFolder}/bin/chessClient",
+        "preLaunchTask": "build chessClient"
+      }
+    ],
+    "cwd": "${workspaceFolder}",
+    "inputs": [
+      {
+      "type": "pickString",
+      "id": "executableName",
+      "description": "Select the executable to debug",
+      "options": [
+        "chessClient",
+        "chessMP",
+        "chessServer"
+      ]
+      }
+    ]
+  }

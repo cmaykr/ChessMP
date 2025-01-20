@@ -6,19 +6,19 @@
 #include <SDL2/SDL.h>
 
 #include "piece.hpp"
+#include "game.hpp"
 
 class GameClient
 {
 public:
     /// @brief Probably temporary solution to pass the board to the client before networking is implemented.
     /// @param board 
-    GameClient(std::array<std::array<Piece, 8>, 8> &board);
+    GameClient(Game *game);
     ~GameClient() = default;
 
     void run();
-
-    bool tryMove(int initX, int initY, int boardX, int boardY);
 private:
-    void move(int initX, int initY, int boardX, int boardY);
-    std::array<std::array<Piece, 8>, 8> localBoard;
+    std::array<std::array<Piece, 8>, 8> &localBoard;
+
+    Game* game;
 };

@@ -1,4 +1,6 @@
 #include "piece.hpp"
+#include <string>
+#include <iostream>
 
 Piece::Piece()
     : texturePath(""), pieceType(PieceType::UNKNOWN), isWhite(false)

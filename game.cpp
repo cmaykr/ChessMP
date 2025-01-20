@@ -7,7 +7,7 @@
 #include "resourceManager.hpp"
 
 Game::Game(std::string const& title, int width, int height)
-    : xBoardPos{0}, yBoardPos{0}
+    : xBoardPos{0}, yBoardPos{0}, board{}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -49,6 +49,11 @@ Game::Game(std::string const& title, int width, int height)
     {
         board[i][1] = pawnB;
     }
+
+    if (board[0][0].isEmpty())
+        std::cout << "Empty!" << std::endl;
+    else
+        std::cout << "Not empty" << std::endl;
 }
 
 void Game::run()
@@ -58,4 +63,101 @@ void Game::run()
 std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 {
     return board;
+}
+
+bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+{
+    std::cout << "Trying move at " << startX << " " << startY << "on: " << board[startX][startY].getTexture() << std::endl;
+    if (board[0][0].isEmpty())
+        std::cout << "Empty!" << std::endl;
+    else
+        std::cout << "Not empty" << std::endl;
+    Piece piece = board[startX][startY];
+    
+    std::cout << "Got piece" << std::endl;
+    bool validMove = false;
+
+    switch (piece.getType())
+    {
+        case PieceType::Pawn:
+        {
+            if (targetX == startX && (targetY) == startY + 1)
+            {
+                validMove = true;
+            }
+            break;
+        }
+        case PieceType::Rook:
+        {
+            if (targetX == startX || targetY == startY)
+            {
+                validMove = true;
+            }
+            break;
+        }
+        case PieceType::King:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+
+            bool validMoveXAxis = xDiff == 1 || xDiff == 0;
+            bool validMoveYAxis = yDiff == 1 || yDiff == 0;
+            if (validMoveXAxis && validMoveYAxis)
+            {
+                validMove = true;
+            }
+            break;
+        }
+        case PieceType::Bishop:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == yDiff)
+            {
+                validMove = true;
+            }
+            break;
+        }
+        case PieceType::Queen:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == yDiff || targetX == startX || targetY == startY)
+            {
+                validMove = true;
+            }
+            break;
+        }
+        case PieceType::Knight:
+        {
+            int xDiff = abs(startX - targetX);
+            int yDiff = abs(startY - targetY);
+            if (xDiff == 2 && yDiff == 1)
+            {
+                validMove = true;
+            }
+            else if (yDiff == 2 && xDiff == 1)
+            {
+                
+                validMove = true;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    std::cout << "Moving" << std::endl;
+    if (validMove)
+    {
+        Piece piece = board[startX][startY];
+        if (board[targetX][targetY].isEmpty())
+        {
+            board[targetX][targetY] = piece;
+            board[startX][startY] = Piece{};
+        }
+    }
+
+    std::cout << "Moved" << std::endl;
+    return validMove;
 }

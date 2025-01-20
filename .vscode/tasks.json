@@ -1,0 +1,19 @@
+{
+    "tasks": [
+      {
+        "type": "shell",
+        "label": "build chessClient",
+        "command": "cmake",
+        "args": [
+          "--build",
+          "${workspaceFolder}/build",
+          "--target",
+          "chessClient"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }
