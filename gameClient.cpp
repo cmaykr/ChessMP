@@ -234,7 +234,8 @@ void GameClient::run()
 
                 if (temp != nullptr)
                 {
-                    SDL_SetTextureColorMod(temp, 125, 200, 200);
+                    (localBoard[i][j].isPieceWhite()) ? SDL_SetTextureColorMod(temp, 125, 200, 200) : SDL_SetTextureColorMod(temp, 200, 200, 200);
+                    //SDL_SetTextureColorMod(temp, 125, 200, 200);
                     SDL_RenderCopy(renderer.get(), temp, NULL, &position);
                 }
             }

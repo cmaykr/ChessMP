@@ -24,6 +24,7 @@ public:
     bool tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard);
 private:
 
+    bool isPieceBlockingTarget(int startX, int startY, int targetX, int targetY);
     std::array<std::array<Piece, 8>, 8> board{};
     std::ostream &output;
 };

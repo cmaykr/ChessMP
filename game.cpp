@@ -70,9 +70,10 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
     {
         case PieceType::Pawn:
         {
-            if (targetX == startX && (targetY) == startY + 1)
+            if (targetX == startX)
             {
-                validMove = true;
+                if ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1))
+                    validMove = true;
             }
             break;
         }
@@ -136,7 +137,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             break;
     }
 
-    if (validMove)
+    if (validMove && isPieceBlockingTarget(startX, startY, targetX, targetY) && piece.getType() != PieceType::Knight || (PieceType::Knight && validMove))
     {
         Piece piece = board[startX][startY];
         if (board[targetX][targetY].isEmpty())
@@ -147,4 +148,80 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
     }
 
     return validMove;
+}
+
+bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY)
+{
+    if (startX == targetX)
+    {
+        int y = ((startY < targetY) ? startY : targetY) + 1;
+        int yEnd = ((startY < targetY) ? targetY : startY);
+        if (startY < targetY)
+        {
+            for (y; y < yEnd; y++)
+            {
+                if (!board[startX][y].isEmpty())
+                {
+                    output << "Piece is blocking" << std::endl;
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            for (y; y < yEnd; y++)
+            {
+                if (!board[startX][y].isEmpty())
+                {
+                    output << "Piece is blocking" << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+    else if (startY == targetY)
+    {
+        int x = ((startX < targetX) ? startX : targetX) + 1;
+        int xEnd = ((startX < targetX) ? targetX : startX);
+        if (startX < targetX)
+        {
+            for (x; x < xEnd; x++)
+            {
+                if (!board[x][startY].isEmpty())
+                {
+                    output << "Piece is blocking" << std::endl;
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            for (x; x < xEnd; x++)
+            {
+                if (!board[x][startY].isEmpty())
+                {
+                    output << "Piece is blocking" << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+    else
+    {
+        int x = ((startX < targetX) ? startX : targetX) + 1;
+        int xEnd = ((startX < targetX) ? targetX : startX);
+        int y = ((startY < targetY) ? startY : targetY) + 1;
+        int yEnd = ((startY < targetY) ? targetY : startY);
+        for (x, y; x < xEnd && y < yEnd; x++, y++)
+        {
+            if (!board[x][y].isEmpty())
+            {
+                output << "Piece is blocking" << std::endl;
+                return false;
+            }
+        }
+
+    }
+
+    return true;
 }
