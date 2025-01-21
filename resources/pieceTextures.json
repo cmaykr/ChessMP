@@ -1,0 +1,11 @@
+{
+    "basePath": "models",
+    "textures": {
+        "pawn": "pawn.png",
+        "knight": "knight.png",
+        "bishop": "bishop.png",
+        "queen": "queen.png",
+        "rook": "rook.png",
+        "king": "king.png"
+    }
+}

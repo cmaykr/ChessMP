@@ -71,12 +71,8 @@ void GameClient::run()
     Piece bishopB {"models/bishop.png", PieceType::Bishop, false};
     Piece queenB {"models/queen.png", PieceType::Queen, false};
     Piece kingB {"models/king.png", PieceType::King, false};
-    instance.addTexture(pawn.getTexture());
-    instance.addTexture(rook.getTexture());
-    instance.addTexture(knight.getTexture());
-    instance.addTexture(bishop.getTexture());
-    instance.addTexture(queen.getTexture());
-    instance.addTexture(king.getTexture());
+
+    instance.loadTexturesFromFile("resources/pieceTextures.json");
     SDL_Texture *p = instance.getTexture(pawn.getTexture());
     SDL_Texture *r = instance.getTexture(rook.getTexture());
     SDL_Texture *k = instance.getTexture(knight.getTexture());

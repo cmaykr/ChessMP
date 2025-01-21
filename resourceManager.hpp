@@ -6,6 +6,8 @@
 #include <memory>
 
 #include <iostream>
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 struct TexDeleter
     {
@@ -36,22 +38,20 @@ public:
         this->renderer = renderer;
     }
 
-    bool addTexture(std::string const& texturePath)
+    bool loadTexture(std::string const& texturePath)
     {
-        SDL_Surface *surface = IMG_Load(texturePath.c_str());
-        if (surface == nullptr)
-        {
-            std::cerr << "Error occured while creating surface for texture: " << SDL_GetError() << std::endl;
-            exit(1);
-            return false;
-        }
-        std::unique_ptr<SDL_Texture, TexDeleter> tex = std::unique_ptr<SDL_Texture, TexDeleter>(SDL_CreateTextureFromSurface(renderer.get(), surface));
-        SDL_FreeSurface(surface);
+        std::unique_ptr<SDL_Texture, TexDeleter> tex = std::unique_ptr<SDL_Texture, TexDeleter>(IMG_LoadTexture(renderer.get(), texturePath.c_str()));
 
         if (tex == nullptr)
         {
             std::cerr << "Error occured while creating texture: " << SDL_GetError() << std::endl;
             exit(1);
+            return false;
+        }
+        if (textures[texturePath] != nullptr)
+        {
+            std::cerr << "Error: Texture already loaded, not loading again." << std::endl;
+            SDL_DestroyTexture(tex.get());
             return false;
         }
         textures[texturePath] = std::move(tex);
@@ -67,6 +67,23 @@ public:
             return nullptr;
         }
         return it->second.get(); 
+    }
+
+    bool loadTexturesFromFile(std::string const& filename)
+    {
+        std::ifstream jsonFile{filename};
+
+        nlohmann::json data = nlohmann::json::parse(jsonFile);
+
+        std::string basePath = data["basePath"];
+        basePath += "/";
+        for (std::string texture : data["textures"])
+        {
+            std::cout << "Loading texture: " << basePath + texture << std::endl;
+            loadTexture(basePath + texture);
+        }
+
+        return true;
     }
 private:
     ResourceManager() = default;
