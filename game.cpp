@@ -205,18 +205,23 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
     }
     else
     {
-        int x = ((startX < targetX) ? startX : targetX) + 1;
-        int xEnd = ((startX < targetX) ? targetX : startX);
-        int y = ((startY < targetY) ? startY : targetY) + 1;
-        int yEnd = ((startY < targetY) ? targetY : startY);
-        for (x, y; x < xEnd && y < yEnd; x++, y++)
+        int x = startX;
+        int y = startY;
+        int dist = abs(startX - targetX);
+
+        int xMod = (startX < targetX) ? 1 : -1;
+        int yMod = (startY < targetY) ? 1 : -1;
+
+        for (int i{}; i < dist - 1; i++)
         {
+            x += 1*xMod;
+            y += 1*yMod;
+
             if (!board[x][y].isEmpty())
             {
                 return false;
             }
         }
-
     }
 
     return true;
