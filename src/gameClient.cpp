@@ -257,7 +257,6 @@ void GameClient::run()
             SDL_RenderCopy(renderer.get(), temp, NULL, &position);
         }
 
-
         SDL_RenderPresent(renderer.get());
     }
 

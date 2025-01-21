@@ -7,7 +7,7 @@
 #include "resourceManager.hpp"
 
 Game::Game(std::ostream & output)
-    : board{}, output{output}
+    : board{}, output{output}, isPlayerWhitesTurn{true}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -62,6 +62,11 @@ std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 
 bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
+    if (isPlayerWhitesTurn != localBoard[startX][startY].isPieceWhite())
+    {
+        return false;
+    }
+
     Piece piece = board[startX][startY];
     
     bool validMove = false;
@@ -144,6 +149,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
         {
             board[targetX][targetY] = piece;
             board[startX][startY] = Piece{};
+            isPlayerWhitesTurn = !isPlayerWhitesTurn;
         }
     }
 
