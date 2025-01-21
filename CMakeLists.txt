@@ -9,6 +9,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
-add_executable(chessClient client.cpp game.cpp gameClient.cpp piece.cpp)
+include_directories(include)
+
+add_executable(chessClient src/client.cpp src/game.cpp src/gameClient.cpp src/piece.cpp)
 target_link_libraries(chessClient PRIVATE SDL2::SDL2)
 target_link_libraries(chessClient PRIVATE SDL2_image::SDL2_image)
