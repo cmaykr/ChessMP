@@ -77,8 +77,13 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
         {
             if (targetX == startX)
             {
+                if (board[targetX][targetY].isEmpty() && ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1)))
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+            }
+            else if (!board[targetX][targetY].isEmpty() && abs(startX - targetX) == 1 && piece.isPieceWhite() != board[targetX][targetY].isPieceWhite())
+            {
                 if ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1))
-                    validMove = true;
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
             }
             break;
         }
@@ -86,7 +91,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
         {
             if (targetX == startX || targetY == startY)
             {
-                validMove = true;
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
             }
             break;
         }
@@ -99,7 +104,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             bool validMoveYAxis = yDiff == 1 || yDiff == 0;
             if (validMoveXAxis && validMoveYAxis)
             {
-                validMove = true;
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
             }
             break;
         }
@@ -109,7 +114,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff)
             {
-                validMove = true;
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
             }
             break;
         }
@@ -119,7 +124,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff || targetX == startX || targetY == startY)
             {
-                validMove = true;
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
             }
             break;
         }
@@ -142,7 +147,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             break;
     }
 
-    if (validMove && isPieceBlockingTarget(startX, startY, targetX, targetY))
+    if (validMove)
     {
         Piece piece = board[startX][startY];
         if (board[targetX][targetY].isEmpty() || board[targetX][targetY].isPieceWhite() != piece.isPieceWhite())
