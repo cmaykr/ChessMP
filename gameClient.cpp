@@ -139,6 +139,7 @@ void GameClient::run()
                         initX = boardX;
                         initY = boardY;
                     }
+                    chosenPiece = localBoard[initX][initY];
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
@@ -152,7 +153,7 @@ void GameClient::run()
                         if (!clickMove && !localBoard[boardX][boardY].isEmpty())
                         {
                             clickMove = true;
-                            chosenPiece = localBoard[boardX][initY];
+                            chosenPiece = localBoard[boardX][boardY];
                             initX = boardX;
                             initY = boardY;
                         } else
@@ -162,6 +163,11 @@ void GameClient::run()
                         }
                     }
                     else if (game->tryMove(initX, initY, boardX, boardY, localBoard))
+                    {
+                        chosenPiece = Piece{};
+                    }
+
+                    if (!clickMove)
                     {
                         chosenPiece = Piece{};
                     }
@@ -239,6 +245,20 @@ void GameClient::run()
                     SDL_RenderCopy(renderer.get(), temp, NULL, &position);
                 }
             }
+        }
+
+        if (!clickMove && !chosenPiece.isEmpty())
+        {
+            SDL_GetMouseState(&x, &y);
+            SDL_Rect position{};
+            position.h = size;
+            position.w = size;
+            position.x = x - size / 2;
+            position.y = y - size / 2;
+            SDL_Texture *temp = instance.getTexture(chosenPiece.getTexture());
+
+            (chosenPiece.isPieceWhite()) ? SDL_SetTextureColorMod(temp, 125, 200, 200) : SDL_SetTextureColorMod(temp, 200, 200, 200);
+            SDL_RenderCopy(renderer.get(), temp, NULL, &position);
         }
 
 

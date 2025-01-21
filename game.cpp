@@ -137,10 +137,10 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             break;
     }
 
-    if (validMove && isPieceBlockingTarget(startX, startY, targetX, targetY) && piece.getType() != PieceType::Knight || (PieceType::Knight && validMove))
+    if (validMove && isPieceBlockingTarget(startX, startY, targetX, targetY))
     {
         Piece piece = board[startX][startY];
-        if (board[targetX][targetY].isEmpty())
+        if (board[targetX][targetY].isEmpty() || board[targetX][targetY].isPieceWhite() != piece.isPieceWhite())
         {
             board[targetX][targetY] = piece;
             board[startX][startY] = Piece{};
@@ -163,7 +163,6 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
             {
                 if (!board[startX][y].isEmpty())
                 {
-                    output << "Piece is blocking" << std::endl;
                     return false;
                 }
             }
@@ -174,7 +173,6 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
             {
                 if (!board[startX][y].isEmpty())
                 {
-                    output << "Piece is blocking" << std::endl;
                     return false;
                 }
             }
@@ -190,7 +188,6 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
             {
                 if (!board[x][startY].isEmpty())
                 {
-                    output << "Piece is blocking" << std::endl;
                     return false;
                 }
             }
@@ -201,7 +198,6 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
             {
                 if (!board[x][startY].isEmpty())
                 {
-                    output << "Piece is blocking" << std::endl;
                     return false;
                 }
             }
@@ -217,7 +213,6 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
         {
             if (!board[x][y].isEmpty())
             {
-                output << "Piece is blocking" << std::endl;
                 return false;
             }
         }
