@@ -6,8 +6,8 @@
 #include "piece.hpp"
 #include "resourceManager.hpp"
 
-Game::Game(std::string const& title, int width, int height)
-    : xBoardPos{0}, yBoardPos{0}, board{}
+Game::Game(std::ostream & output)
+    : board{}, output{output}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -49,11 +49,6 @@ Game::Game(std::string const& title, int width, int height)
     {
         board[i][1] = pawnB;
     }
-
-    if (board[0][0].isEmpty())
-        std::cout << "Empty!" << std::endl;
-    else
-        std::cout << "Not empty" << std::endl;
 }
 
 void Game::run()
@@ -67,14 +62,8 @@ std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 
 bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
-    std::cout << "Trying move at " << startX << " " << startY << "on: " << board[startX][startY].getTexture() << std::endl;
-    if (board[0][0].isEmpty())
-        std::cout << "Empty!" << std::endl;
-    else
-        std::cout << "Not empty" << std::endl;
     Piece piece = board[startX][startY];
     
-    std::cout << "Got piece" << std::endl;
     bool validMove = false;
 
     switch (piece.getType())
@@ -147,7 +136,6 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             break;
     }
 
-    std::cout << "Moving" << std::endl;
     if (validMove)
     {
         Piece piece = board[startX][startY];
@@ -158,6 +146,5 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
         }
     }
 
-    std::cout << "Moved" << std::endl;
     return validMove;
 }

@@ -6,12 +6,12 @@
 
 #include "resourceManager.hpp"
 
-GameClient::GameClient(Game* game)
-    : localBoard{game->getBoard()}, game(game)
+GameClient::GameClient(Game* game, std::ostream & output)
+    : localBoard{game->getBoard()}, output(output), game(game)
 {
     if (game == nullptr)
     {
-        std::cerr << "Error: Game is not initialized in constructor." << std::endl;
+        output << "Error: Game is not initialized in constructor." << std::endl;
         exit(1);
         return;
     }
@@ -30,25 +30,25 @@ void GameClient::run()
 {
     if (game == nullptr)
     {
-        std::cerr << "Error: Game is not initialized." << std::endl;
+        output << "Error: Game is not initialized." << std::endl;
         exit(1);
         return;
     }
 
     ResourceManager& instance = ResourceManager::getInstance();
-    std::cout << "Initializing SDL" << std::endl;
+    output << "Initializing SDL" << std::endl;
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        std::cerr << "SDL_init error: " << SDL_GetError() << std::endl;
+        output << "SDL_init error: " << SDL_GetError() << std::endl;
 
-    std::cout << "Creating SDL window" << std::endl;
+    output << "Creating SDL window" << std::endl;
     SDL_Window *window = SDL_CreateWindow("ChessMP", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
     if (window == NULL)
-        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
+        output << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
 
-    std::cout << "Creating SDL renderer" << std::endl;
+    output << "Creating SDL renderer" << std::endl;
     std::shared_ptr<SDL_Renderer> renderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(window, -1, 0), RendererDeleter());
     if (renderer == nullptr)
-        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
+        output << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
 
     instance.setRenderer(renderer);
     SDL_RenderClear(renderer.get());
@@ -58,7 +58,7 @@ void GameClient::run()
     box.x = 20;
     box.y = 20;
 
-    std::cout << "Loading resources" << std::endl;
+    output << "Loading resources" << std::endl;
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
     Piece knight {"models/knight.png", PieceType::Knight, true};
@@ -108,7 +108,7 @@ void GameClient::run()
     bool clickMove = false;
     Piece chosenPiece{};
 
-    std::cout << "Starting game loop" << std::endl;
+    output << "Starting game loop" << std::endl;
     while (running)
     {
         SDL_Event e;
@@ -205,7 +205,7 @@ void GameClient::run()
 
                 if (localBoard[i][j].isEmpty())
                 {
-                    continue;;
+                    continue;
                 }
                 switch (localBoard[i][j].getType())
                 {

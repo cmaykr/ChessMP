@@ -9,9 +9,9 @@
 
 int main()
 {
-    Game game {"ChessMP", 640, 480};
+    Game game {std::cout};
 
-    GameClient gameClient{&game};
+    GameClient gameClient{&game, std::cout};
     gameClient.run();
     
     return 0;

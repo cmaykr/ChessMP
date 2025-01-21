@@ -4,13 +4,14 @@
 #include <array>
 #include <SDL2/SDL.h>
 #include <memory>
+#include <ostream>
 
 #include "piece.hpp"
 
 class Game
 {
 public:
-    Game(std::string const& title, int width, int height);
+    Game(std::ostream & output);
 
     void run();
 
@@ -22,8 +23,7 @@ public:
     /// @return Returns true if move is valid according to all checked rules, false otherwise.
     bool tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard);
 private:
-    int xBoardPos;
-    int yBoardPos;
 
     std::array<std::array<Piece, 8>, 8> board{};
+    std::ostream &output;
 };
