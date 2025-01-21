@@ -152,6 +152,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
 
 bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY)
 {
+    // This can most likely be done in less code, or at least more readable.
     if (startX == targetX)
     {
         int y = ((startY < targetY) ? startY : targetY) + 1;
