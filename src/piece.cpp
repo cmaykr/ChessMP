@@ -39,15 +39,17 @@ bool Piece::isPieceWhite() const
 
 void Piece::setTexture(std::string const& newPath)
 {
-    
+    // TODO: Check for correct format?.
+    texturePath = newPath;
 }
 
 void Piece::setType(PieceType const& newType)
 {
-
+    if (newType != PieceType::UNKNOWN)
+        pieceType = newType;
 }
 
 void Piece::setIsWhite(bool isWhite)
 {
-
+    this->isWhite = isWhite;
 }

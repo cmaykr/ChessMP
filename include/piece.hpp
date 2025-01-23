@@ -33,4 +33,5 @@ private:
     std::string texturePath;
     PieceType pieceType;
     bool isWhite;
+    bool _hasMoved {false};
 };

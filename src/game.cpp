@@ -78,7 +78,13 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             if (targetX == startX)
             {
                 if (board[targetX][targetY].isEmpty() && ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1)))
+                {
                     validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                }
+                else if ((piece.isPieceWhite() && targetY == startY - 2 && startY == 6) || (!piece.isPieceWhite() && targetY == startY + 2 && startY == 1))
+                {
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                }
             }
             else if (!board[targetX][targetY].isEmpty() && abs(startX - targetX) == 1 && piece.isPieceWhite() != board[targetX][targetY].isPieceWhite())
             {
