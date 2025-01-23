@@ -79,6 +79,10 @@ void GameClient::run()
     SDL_Texture *b = instance.getTexture(bishop.getTexture());
     SDL_Texture *q = instance.getTexture(queen.getTexture());
     SDL_Texture *ki = instance.getTexture(king.getTexture());
+    instance.loadTexture("models/Small_Dot.png");
+    SDL_Texture *dot = instance.getTexture("models/Small_Dot.png");
+    instance.loadTexture("models/SquareDot.png");
+    SDL_Texture *square = instance.getTexture("models/SquareDot.png");
     SDL_Rect pos;
     pos.h = 40;
     pos.w = 40;
@@ -188,6 +192,11 @@ void GameClient::run()
                     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
                 SDL_RenderFillRect(renderer.get(), &box);
 
+                if (!chosenPiece.isEmpty() && i == initY && j == initX)
+                {
+                    SDL_SetTextureColorMod(square, 0, 255, 0);
+                    SDL_RenderCopy(renderer.get(), square, NULL, &box);
+                }
                 box.x += size;
             }
             box.y += size;
@@ -237,8 +246,27 @@ void GameClient::run()
                 if (temp != nullptr)
                 {
                     (localBoard[i][j].isPieceWhite()) ? SDL_SetTextureColorMod(temp, 125, 200, 200) : SDL_SetTextureColorMod(temp, 200, 200, 200);
-                    //SDL_SetTextureColorMod(temp, 125, 200, 200);
                     SDL_RenderCopy(renderer.get(), temp, NULL, &position);
+                }
+            }
+        }
+
+        if (!chosenPiece.isEmpty())
+        {
+            SDL_Rect circle;
+            circle.w = size;
+            circle.h = size;
+            for (int x{}; x < 8; x++)
+            {
+                for (int y{}; y < 8; y++)
+                {
+                    if (game->isMoveValid(initX, initY, x, y, localBoard))
+                    {
+                        circle.x = xStart + x * size;
+                        circle.y = yStart + y * size;
+                        SDL_SetTextureColorMod(dot, 0, 255, 0);
+                        SDL_RenderCopy(renderer.get(), dot, NULL, &circle);
+                    }
                 }
             }
         }

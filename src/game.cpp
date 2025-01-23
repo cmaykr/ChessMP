@@ -60,7 +60,7 @@ std::array<std::array<Piece, 8>, 8>& Game::getBoard()
     return board;
 }
 
-bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     if (isPlayerWhitesTurn != localBoard[startX][startY].isPieceWhite())
     {
@@ -153,18 +153,30 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             break;
     }
 
-    if (validMove)
+    if ((board[targetX][targetY].isEmpty() || board[targetX][targetY].isPieceWhite() != piece.isPieceWhite()) == false)
+    {
+        validMove = false;
+    }
+    
+    return validMove;
+}
+
+bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+{
+    // Very long method.
+    
+
+    if (isMoveValid(startX, startY, targetX, targetY, localBoard))
     {
         Piece piece = board[startX][startY];
-        if (board[targetX][targetY].isEmpty() || board[targetX][targetY].isPieceWhite() != piece.isPieceWhite())
-        {
-            board[targetX][targetY] = piece;
-            board[startX][startY] = Piece{};
-            isPlayerWhitesTurn = !isPlayerWhitesTurn;
-        }
+        board[targetX][targetY] = piece;
+        board[startX][startY] = Piece{};
+        isPlayerWhitesTurn = !isPlayerWhitesTurn;
+
+        return true;
     }
 
-    return validMove;
+    return false;
 }
 
 bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY)
