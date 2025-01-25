@@ -72,7 +72,10 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "bitset": "cpp",
+        "forward_list": "cpp",
+        "ranges": "cpp"
     },
     "sarif-viewer.connectToGithubCodeScanning": "off"
 }

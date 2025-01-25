@@ -62,7 +62,7 @@ std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 
 bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
-    Piece piece = board[startX][startY];
+    Piece piece = localBoard[startX][startY];
     
     bool validMove = false;
 
@@ -72,19 +72,19 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
         {
             if (targetX == startX)
             {
-                if (board[targetX][targetY].isEmpty() && ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1)))
+                if (localBoard[targetX][targetY].isEmpty() && ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1)))
                 {
-                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
                 }
-                else if ((piece.isPieceWhite() && targetY == startY - 2 && startY == 6) || (!piece.isPieceWhite() && targetY == startY + 2 && startY == 1))
+                else if (localBoard[targetX][targetY].isEmpty() && ((piece.isPieceWhite() && targetY == startY - 2 && startY == 6) || (!piece.isPieceWhite() && targetY == startY + 2 && startY == 1)))
                 {
-                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
                 }
             }
-            else if (!board[targetX][targetY].isEmpty() && abs(startX - targetX) == 1 && piece.isPieceWhite() != board[targetX][targetY].isPieceWhite())
+            else if (!localBoard[targetX][targetY].isEmpty() && abs(startX - targetX) == 1 && piece.isPieceWhite() != localBoard[targetX][targetY].isPieceWhite())
             {
                 if ((piece.isPieceWhite() && targetY == startY - 1) || (!piece.isPieceWhite() && targetY == startY + 1))
-                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                    validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
             }
             break;
         }
@@ -92,7 +92,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
         {
             if (targetX == startX || targetY == startY)
             {
-                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
             }
             break;
         }
@@ -105,7 +105,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
             bool validMoveYAxis = yDiff == 1 || yDiff == 0;
             if (validMoveXAxis && validMoveYAxis)
             {
-                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
             }
             break;
         }
@@ -115,7 +115,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff)
             {
-                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
             }
             break;
         }
@@ -125,7 +125,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
             int yDiff = abs(startY - targetY);
             if (xDiff == yDiff || targetX == startX || targetY == startY)
             {
-                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY);
+                validMove = isPieceBlockingTarget(startX, startY, targetX, targetY, localBoard);
             }
             break;
         }
@@ -148,7 +148,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
             break;
     }
 
-    if ((board[targetX][targetY].isEmpty() || board[targetX][targetY].isPieceWhite() != piece.isPieceWhite()) == false)
+    if ((localBoard[targetX][targetY].isEmpty() || localBoard[targetX][targetY].isPieceWhite() != piece.isPieceWhite()) == false)
     {
         validMove = false;
     }
@@ -163,14 +163,23 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
 
     if (isMoveValid(startX, startY, targetX, targetY, localBoard) && isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
     {
+        if (willMoveCauseCheck(startX, startY, targetX, targetY, localBoard))
+        {
+            output << "Move will cause a check" << std::endl;
+            return false;
+        }
         Piece piece = board[startX][startY];
         board[targetX][targetY] = piece;
         board[startX][startY] = Piece{};
-        isPlayerWhitesTurn = !isPlayerWhitesTurn;
         if (isCheck(targetX, targetY))
         {
             output << "King is in check" << std::endl;
         }
+        if (isCheckMate(targetX, targetY))
+        {
+            output << "Checkmate" << std::endl;
+        }
+        isPlayerWhitesTurn = !isPlayerWhitesTurn;
 
         return true;
     }
@@ -178,7 +187,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
     return false;
 }
 
-bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY)
+bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     // This can most likely be done in less code, or at least more readable.
     if (startX == targetX)
@@ -189,7 +198,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
         {
             for (y; y < yEnd; y++)
             {
-                if (!board[startX][y].isEmpty())
+                if (!localBoard[startX][y].isEmpty())
                 {
                     return false;
                 }
@@ -199,7 +208,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
         {
             for (y; y < yEnd; y++)
             {
-                if (!board[startX][y].isEmpty())
+                if (!localBoard[startX][y].isEmpty())
                 {
                     return false;
                 }
@@ -214,7 +223,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
         {
             for (x; x < xEnd; x++)
             {
-                if (!board[x][startY].isEmpty())
+                if (!localBoard[x][startY].isEmpty())
                 {
                     return false;
                 }
@@ -224,7 +233,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
         {
             for (x; x < xEnd; x++)
             {
-                if (!board[x][startY].isEmpty())
+                if (!localBoard[x][startY].isEmpty())
                 {
                     return false;
                 }
@@ -245,7 +254,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
             x += 1*xMod;
             y += 1*yMod;
 
-            if (!board[x][y].isEmpty())
+            if (!localBoard[x][y].isEmpty())
             {
                 return false;
             }
@@ -267,7 +276,7 @@ bool Game::isCheck(int targetX, int targetY)
     {
         for (int y {}; y < 8; y++)
         {
-            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != movedPiece.isPieceWhite())
+            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != isPlayerWhitesTurn)
             {
                 enemyKing = board[x][y];
                 xKing = x;
@@ -279,9 +288,99 @@ bool Game::isCheck(int targetX, int targetY)
 
     if (enemyKing.isEmpty() || xKing == -1 || yKing == -1)
     {
-        output << "There is no enemy king, exiting." << std::endl;
+        output << "There is no enemy king, no valid game, exiting." << std::endl;
         exit(1);
     }
 
     return isMoveValid(targetX, targetY, xKing, yKing, board);
+}
+
+bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+{
+    std::array<std::array<Piece, 8>, 8> futureBoard = localBoard;
+
+    futureBoard[targetX][targetY] = board[startX][startY];
+    futureBoard[startX][startY] = Piece{};
+    int kingX{};
+    int kingY{};
+
+    for (int x {}; x < 8; x++)
+    {
+        for (int y {}; y < 8; y++)
+        {
+            if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() == futureBoard[targetX][targetY].isPieceWhite())
+            {
+                kingX = x;
+                kingY = y;
+
+                break;
+            }
+        }
+    }
+
+    for (int x{}; x < 8; x++)
+    {
+        for (int y{}; y < 8; y++)
+        {
+            if (!futureBoard[x][y].isEmpty() && futureBoard[x][y].isPieceWhite() != futureBoard[targetX][targetY].isPieceWhite())
+            {
+                if (isMoveValid(x, y, kingX, kingY, futureBoard))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Game::isCheckMate(int targetX, int targetY)
+{
+    std::array<std::array<Piece, 8>, 8> futureBoard = board;
+
+    if (isCheck(targetX, targetY))
+    {
+        int kingX{};
+        int kingY{};
+
+        for (int x {}; x < 8; x++)
+        {
+            for (int y {}; y < 8; y++)
+            {
+                if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() != isPlayerWhitesTurn)
+                {
+                    kingX = x;
+                    kingY = y;
+
+                    break;
+                }
+            }
+        }
+        Piece checkedKing = futureBoard[kingX][kingY];
+
+        for (int dX{-1}; dX <= 1; dX++)
+        {
+            for (int dY{-1}; dY <= 1; dY++)
+            {
+                if (kingX + dX < 0 || kingX + dX > 7 || kingY + dY < 0 || kingY + dY > 7)
+                {
+                    continue;
+                }
+                if (dX == 0 && dY == 0)
+                    continue;
+
+                if (!willMoveCauseCheck(kingX, kingY, kingX + dX, kingY + dY, futureBoard))
+                {
+                    if (isMoveValid(kingX, kingY, kingX + dX, kingY + dY, futureBoard) )
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    return false;
 }
