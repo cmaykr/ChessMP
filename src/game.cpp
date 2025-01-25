@@ -62,11 +62,6 @@ std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 
 bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
-    if (isPlayerWhitesTurn != localBoard[startX][startY].isPieceWhite())
-    {
-        return false;
-    }
-
     Piece piece = board[startX][startY];
     
     bool validMove = false;
@@ -164,14 +159,18 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
 bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     // Very long method.
-    
+    board = localBoard;
 
-    if (isMoveValid(startX, startY, targetX, targetY, localBoard))
+    if (isMoveValid(startX, startY, targetX, targetY, localBoard) && isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
     {
         Piece piece = board[startX][startY];
         board[targetX][targetY] = piece;
         board[startX][startY] = Piece{};
         isPlayerWhitesTurn = !isPlayerWhitesTurn;
+        if (isCheck(targetX, targetY))
+        {
+            output << "King is in check" << std::endl;
+        }
 
         return true;
     }
@@ -254,4 +253,35 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
     }
 
     return true;
+}
+
+bool Game::isCheck(int targetX, int targetY)
+{
+    Piece movedPiece = board[targetX][targetY];
+
+    Piece enemyKing{};
+    int xKing{-1};
+    int yKing{-1};
+
+    for (int x {}; x < 8; x++)
+    {
+        for (int y {}; y < 8; y++)
+        {
+            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != movedPiece.isPieceWhite())
+            {
+                enemyKing = board[x][y];
+                xKing = x;
+                yKing = y;
+                break;
+            }
+        }
+    }
+
+    if (enemyKing.isEmpty() || xKing == -1 || yKing == -1)
+    {
+        output << "There is no enemy king, exiting." << std::endl;
+        exit(1);
+    }
+
+    return isMoveValid(targetX, targetY, xKing, yKing, board);
 }

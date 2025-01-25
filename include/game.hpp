@@ -28,6 +28,9 @@ private:
     /// @return True if there is a piece blocking the move, otherwise false.
     bool isPieceBlockingTarget(int startX, int startY, int targetX, int targetY);
 
+    bool isCheck(int targetX, int targetY);
+    bool isCheckMate();
+
     std::array<std::array<Piece, 8>, 8> board{};
     bool isPlayerWhitesTurn;
     std::ostream &output;
