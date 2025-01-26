@@ -125,21 +125,18 @@ void GameClient::run()
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
 
-                    lastMouseDown = mouseDown;
-                    mouseDown = true;
-
                     if (clickMove)
                     {
-                        game->tryMove(initX, initY, boardX, boardY, localBoard);
-
-                        clickMove = false;
+                        if (game->tryMove(initX, initY, boardX, boardY, localBoard))
+                        {
+                            clickMove = false;
+                        }
                     }
                     else
                     {
                         initX = boardX;
                         initY = boardY;
                     }
-                    chosenPiece = localBoard[initX][initY];
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
@@ -150,7 +147,7 @@ void GameClient::run()
                     
                     if (initX == boardX && initY == boardY)
                     {
-                        if (!clickMove && !localBoard[boardX][boardY].isEmpty())
+                        if (!clickMove && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
                         {
                             clickMove = true;
                             chosenPiece = localBoard[boardX][boardY];
@@ -161,6 +158,13 @@ void GameClient::run()
                             clickMove = false;
                             chosenPiece = Piece{};
                         }
+                    }
+                    else if (localBoard[boardX][boardY].isPieceWhite() == chosenPiece.isPieceWhite() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
+                    {
+                        chosenPiece = localBoard[boardX][boardY];
+                        clickMove = true;
+                        initX = boardX;
+                        initY = boardY;
                     }
                     else if (game->tryMove(initX, initY, boardX, boardY, localBoard))
                     {

@@ -7,7 +7,7 @@
 #include "resourceManager.hpp"
 
 Game::Game(std::ostream & output)
-    : board{}, output{output}, isPlayerWhitesTurn{true}
+    : board{}, output{output}, _isPlayerWhitesTurn{true}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -161,7 +161,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
     // Very long method.
     board = localBoard;
 
-    if (isMoveValid(startX, startY, targetX, targetY, localBoard) && isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
+    if (isMoveValid(startX, startY, targetX, targetY, localBoard) && _isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
     {
         if (willMoveCauseCheck(startX, startY, targetX, targetY, localBoard))
         {
@@ -179,7 +179,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
         {
             output << "Checkmate" << std::endl;
         }
-        isPlayerWhitesTurn = !isPlayerWhitesTurn;
+        _isPlayerWhitesTurn = !_isPlayerWhitesTurn;
 
         return true;
     }
@@ -276,7 +276,7 @@ bool Game::isCheck(int targetX, int targetY)
     {
         for (int y {}; y < 8; y++)
         {
-            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != isPlayerWhitesTurn)
+            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != _isPlayerWhitesTurn)
             {
                 enemyKing = board[x][y];
                 xKing = x;
@@ -348,7 +348,7 @@ bool Game::isCheckMate(int targetX, int targetY)
         {
             for (int y {}; y < 8; y++)
             {
-                if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() != isPlayerWhitesTurn)
+                if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() != _isPlayerWhitesTurn)
                 {
                     kingX = x;
                     kingY = y;
@@ -383,4 +383,9 @@ bool Game::isCheckMate(int targetX, int targetY)
     }
 
     return false;
+}
+
+bool Game::isPlayerWhitesTurn() const
+{
+    return _isPlayerWhitesTurn;
 }
