@@ -73,12 +73,12 @@ void GameClient::run()
     Piece kingB {"models/king.png", PieceType::King, false};
 
     instance.loadTexturesFromFile("resources/pieceTextures.json");
-    SDL_Texture *p = instance.getTexture(pawn.getTexture());
-    SDL_Texture *r = instance.getTexture(rook.getTexture());
-    SDL_Texture *k = instance.getTexture(knight.getTexture());
-    SDL_Texture *b = instance.getTexture(bishop.getTexture());
-    SDL_Texture *q = instance.getTexture(queen.getTexture());
-    SDL_Texture *ki = instance.getTexture(king.getTexture());
+    SDL_Texture *pawnTex = instance.getTexture(pawn.getTexture());
+    SDL_Texture *rookTex = instance.getTexture(rook.getTexture());
+    SDL_Texture *knightTex = instance.getTexture(knight.getTexture());
+    SDL_Texture *bishopTex = instance.getTexture(bishop.getTexture());
+    SDL_Texture *queenTex = instance.getTexture(queen.getTexture());
+    SDL_Texture *kingTex = instance.getTexture(king.getTexture());
     instance.loadTexture("models/Small_Dot.png");
     SDL_Texture *dot = instance.getTexture("models/Small_Dot.png");
     instance.loadTexture("models/SquareDot.png");
@@ -101,10 +101,10 @@ void GameClient::run()
     int x, y;
 
     bool running = true;
-    bool mouseDown = false;
-    bool lastMouseDown = false;
     int initX{};
     int initY{};
+    int chosenX{};
+    int chosenY{};
     bool clickMove = false;
     Piece chosenPiece{};
 
@@ -125,18 +125,18 @@ void GameClient::run()
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
 
-                    if (clickMove)
+                    if (chosenPiece.isEmpty() && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
                     {
-                        if (game->tryMove(initX, initY, boardX, boardY, localBoard))
-                        {
-                            clickMove = false;
-                        }
+                        chosenPiece = localBoard[boardX][boardY];
+                        chosenX = boardX;
+                        chosenY = boardY;
                     }
-                    else
+                    else if (!chosenPiece.isEmpty() && boardX == chosenX && boardY == chosenY)
                     {
-                        initX = boardX;
-                        initY = boardY;
+                        clickMove = false;
                     }
+                    initX = boardX;
+                    initY = boardY;
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
@@ -145,37 +145,28 @@ void GameClient::run()
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
                     
-                    if (initX == boardX && initY == boardY)
+                    if (boardX == chosenX && boardY == chosenY)
                     {
-                        if (!clickMove && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
-                        {
+                        if (!chosenPiece.isEmpty())
                             clickMove = true;
-                            chosenPiece = localBoard[boardX][boardY];
-                            initX = boardX;
-                            initY = boardY;
-                        } else
+                    }
+                    else if (!chosenPiece.isEmpty())
+                    {
+                        if (!localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == chosenPiece.isPieceWhite()) // Why does checking if spot is empty needed twice?
                         {
-                            clickMove = false;
+                            chosenPiece = localBoard[boardX][boardY];
+                            chosenX = boardX;
+                            chosenY = boardY;
+                        }
+                        else
+                        {
+                            game->tryMove(chosenX, chosenY, boardX, boardY, localBoard);
                             chosenPiece = Piece{};
+                            chosenX = -1;
+                            chosenY = -1;
+                            clickMove = false;
                         }
                     }
-                    else if (localBoard[boardX][boardY].isPieceWhite() == chosenPiece.isPieceWhite() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
-                    {
-                        chosenPiece = localBoard[boardX][boardY];
-                        clickMove = true;
-                        initX = boardX;
-                        initY = boardY;
-                    }
-                    else if (game->tryMove(initX, initY, boardX, boardY, localBoard))
-                    {
-                        chosenPiece = Piece{};
-                    }
-
-                    if (!clickMove)
-                    {
-                        chosenPiece = Piece{};
-                    }
-
                     break;
                 }
             }
@@ -225,22 +216,22 @@ void GameClient::run()
                 switch (localBoard[i][j].getType())
                 {
                     case PieceType::Pawn:
-                        temp = p;
+                        temp = pawnTex;
                         break;
                     case PieceType::Rook:
-                        temp = r;
+                        temp = rookTex;
                         break;
                     case PieceType::Bishop:
-                        temp = b;
+                        temp = bishopTex;
                         break;
                     case PieceType::King:
-                        temp = ki;
+                        temp = kingTex;
                         break;
                     case PieceType::Queen:
-                        temp = q;
+                        temp = queenTex;
                         break;
                     case PieceType::Knight:
-                        temp = k;
+                        temp = knightTex;
                         break;
                     default:
                         temp = nullptr;
@@ -264,7 +255,7 @@ void GameClient::run()
             {
                 for (int y{}; y < 8; y++)
                 {
-                    if (game->isMoveValid(initX, initY, x, y, localBoard))
+                    if (game->isMoveValid(chosenX, chosenY, x, y, localBoard))
                     {
                         circle.x = xStart + x * size;
                         circle.y = yStart + y * size;

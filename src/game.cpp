@@ -379,6 +379,7 @@ bool Game::isCheckMate(int targetX, int targetY)
                 }
             }
         }
+        _isGameOver = true;
         return true;
     }
 
@@ -388,4 +389,9 @@ bool Game::isCheckMate(int targetX, int targetY)
 bool Game::isPlayerWhitesTurn() const
 {
     return _isPlayerWhitesTurn;
+}
+
+bool Game::isGameOver() const
+{
+    return _isGameOver;
 }
