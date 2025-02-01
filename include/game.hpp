@@ -5,13 +5,16 @@
 #include <SDL2/SDL.h>
 #include <memory>
 #include <ostream>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include "piece.hpp"
 
 class Game
 {
 public:
-    Game(std::ostream & output);
+    Game(std::ostream & output, std::string const& port);
+    ~Game();
 
     void run();
 
@@ -35,9 +38,15 @@ private:
     bool isCheckMate(int targetX, int targetY);
     bool willMoveCauseCheck(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard);
 
+    void closeSockets();
+
     std::array<std::array<Piece, 8>, 8> board{};
     bool _isPlayerWhitesTurn;
     std::ostream &output;
 
     bool _isGameOver{false};
+
+    int serverFD{-1};
+    int whiteClientFD{-1};
+    int blackClientFD{-1};
 };

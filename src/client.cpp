@@ -10,10 +10,10 @@
 
 int main()
 {
-    Game game {std::cout};
+    Game game {std::cout, "8080"};
 
-    GameClient gameClient{&game, std::cout};
+    GameClient gameClient{&game, std::cout, "localhost", "8080"};
+
     gameClient.run();
-
     return 0;
 }

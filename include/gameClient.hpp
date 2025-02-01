@@ -14,13 +14,17 @@ class GameClient
 public:
     /// @brief Probably temporary solution to pass the board to the client before networking is implemented.
     /// @param board 
-    GameClient(Game *game, std::ostream & output);
-    ~GameClient() = default;
+    GameClient(Game *game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort);
+    ~GameClient();
 
     void run();
 private:
+    void closeSocket();
+
     std::array<std::array<Piece, 8>, 8> &localBoard;
     std::ostream &output;
 
     Game* game;
+
+    int serverFD;
 };

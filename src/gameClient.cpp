@@ -3,10 +3,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <unistd.h>
 
 #include "resourceManager.hpp"
 
-GameClient::GameClient(Game* game, std::ostream & output)
+GameClient::GameClient(Game* game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort)
     : localBoard{game->getBoard()}, output(output), game(game)
 {
     if (game == nullptr)
@@ -15,7 +16,46 @@ GameClient::GameClient(Game* game, std::ostream & output)
         exit(1);
         return;
     }
-    //localBoard = game->getBoard();
+
+    struct addrinfo hints{};
+    struct addrinfo *result, *rp;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_ADDRCONFIG;
+
+    int err;
+    if (err = getaddrinfo(serverAddress.c_str(), serverPort.c_str(), &hints, &result) < 0)
+    {
+        exit(1);
+    }
+
+    for (rp = result; rp; rp = rp->ai_next)
+    {
+        serverFD = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (serverFD == -1)
+        {
+            continue;
+        }
+        if (connect(serverFD, rp->ai_addr, rp->ai_addrlen) == 0)
+        {
+            break;
+        }
+        
+        closeSocket();
+    }
+
+    freeaddrinfo(result);
+
+    send(serverFD, "test", 4, 0);
+
+    output << "Client connected" << std::endl;
+}
+
+GameClient::~GameClient()
+{
+    closeSocket();
 }
 
 struct RendererDeleter
@@ -285,4 +325,10 @@ void GameClient::run()
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+void GameClient::closeSocket()
+{
+    shutdown(serverFD, SHUT_RDWR);
+    close(serverFD);
 }

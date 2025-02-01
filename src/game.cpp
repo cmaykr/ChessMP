@@ -2,11 +2,17 @@
 
 #include <iostream>
 #include <SDL2/SDL_image.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <charconv>
+#include <unistd.h>
+#include <poll.h>
 
 #include "piece.hpp"
 #include "resourceManager.hpp"
 
-Game::Game(std::ostream & output)
+Game::Game(std::ostream & output, std::string const& port)
     : board{}, output{output}, _isPlayerWhitesTurn{true}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
@@ -51,8 +57,86 @@ Game::Game(std::ostream & output)
     }
 }
 
+Game::~Game()
+{
+    closeSockets();
+}
+
 void Game::run()
 {
+    struct addrinfo hints;
+    struct addrinfo *rp, *result;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    int err = getaddrinfo(NULL, "8080", &hints, &result);
+    if (err < 0)
+    {
+        output << "Error getting address " << strerror(errno) << std::endl;
+        exit(2);
+    }
+
+    for (rp = result; rp != nullptr; rp = rp->ai_next)
+    {
+        serverFD = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+
+        if (serverFD == -1)
+            continue;
+        if (bind(serverFD, rp->ai_addr, rp->ai_addrlen) == 0)
+        {
+            char host[NI_MAXHOST], service[NI_MAXSERV];
+            break;
+        }
+
+        closeSockets();
+    }
+
+    freeaddrinfo(result);
+    if (listen(serverFD, 5) < 0)
+    {
+        output << "Failed to prepare socket for accepting connections.";
+        exit(1);
+    }
+
+    output << "Server initalized" << std::endl;
+    int whiteClientFD = accept(serverFD, NULL, NULL);
+    closeSockets();
+
+    while (true)
+    {
+        char buf[1024];
+        struct pollfd fds[1];
+        fds[0].fd = whiteClientFD;
+        fds[0].events = POLLIN;
+        int N{};
+        int polls = poll(fds, 1, -1);
+        if (polls > 0)
+        {
+            N = recv(whiteClientFD, buf, sizeof(buf), 0);
+            if (N == -1)
+            {
+                std::cerr << "Socket failed when receiving message" << std::endl;
+                closeSockets();
+                exit(1);
+            }
+            if (N == 0)
+            {
+                std::cerr << "Peer socket not available, closing connection" << std::endl;
+                closeSockets();
+                exit(2);
+            }
+            std::string message {buf, N};
+            output << message << std::endl;
+        }
+        else if (polls < 0)
+        {
+            std::cerr << "Nothing to receive" << std::endl;
+            closeSockets();
+        }
+    }
 }
 
 std::array<std::array<Piece, 8>, 8>& Game::getBoard()
@@ -394,4 +478,11 @@ bool Game::isPlayerWhitesTurn() const
 bool Game::isGameOver() const
 {
     return _isGameOver;
+}
+
+
+void Game::closeSockets()
+{
+    shutdown(serverFD, SHUT_RDWR);
+    close(serverFD);
 }
