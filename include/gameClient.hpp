@@ -19,7 +19,9 @@ public:
 
     void run();
 private:
+    std::string sendAndReceiveToServer(std::string const& message);
     void closeSocket();
+    bool tryMove(int chosenX, int chosenY, int boardX, int boardY);
 
     std::array<std::array<Piece, 8>, 8> &localBoard;
     std::ostream &output;

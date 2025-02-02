@@ -102,36 +102,94 @@ void Game::run()
     }
 
     output << "Server initalized" << std::endl;
-    int whiteClientFD = accept(serverFD, NULL, NULL);
-    closeSockets();
+    clientOneFD = accept(serverFD, NULL, NULL);
+    clientTwoFD = accept(serverFD, NULL, NULL);
 
     while (true)
     {
         char buf[1024];
-        struct pollfd fds[1];
-        fds[0].fd = whiteClientFD;
+        struct pollfd fds[2];
+        fds[0].fd = clientOneFD;
         fds[0].events = POLLIN;
+        fds[1].fd = clientTwoFD;
+        fds[1].events = POLLIN;
         int N{};
-        int polls = poll(fds, 1, -1);
+        int polls = poll(fds, 2, -1);
         if (polls > 0)
         {
-            N = recv(whiteClientFD, buf, sizeof(buf), 0);
-            if (N == -1)
+            output << "Nr of events: " << polls << std::endl;
+            for (int i{}; i < 2; i++)
             {
-                std::cerr << "Socket failed when receiving message" << std::endl;
-                closeSockets();
-                exit(1);
+                if (fds[i].revents == POLLIN)
+                {
+                    N = recv(fds[i].fd, buf, sizeof(buf), 0);
+                    if (N == -1)
+                    {
+                        std::cerr << "Socket failed when receiving message" << std::endl;
+                        closeSockets();
+                        exit(1);
+                    }
+                    if (N == 0)
+                    {
+                        std::cerr << "Peer socket not available, closing connection" << std::endl;
+                        closeSockets();
+                        exit(2);
+                    }
+                    std::string message {buf, N};
+                    output << message << " From: " << fds[i].fd << std::endl;
+
+                    if (message.substr(0, message.find(':')) == "MOVE")
+                    {
+                        int startX{}, startY{};
+                        int targetX{}, targetY{};
+                        std::stringstream ss{message.substr(message.find(':') + 1, message.size())};
+                        std::string text;
+                        while (getline(ss, text, '}'))
+                        {
+                            std::stringstream ss2{text};
+                            int num;
+                            ss2 >> num;
+                            output << num << std::endl;
+                            if (text.find("from") != std::string::npos)
+                            {
+                                std::string from = text.substr(text.find('{') + 1, text.find('}') - text.find('{') - 1);
+                                std::string x = from.substr(0, from.find(' '));
+                                std::string y = from.substr(from.find(' ') + 1, from.size());
+                                output << x << " " << y << std::endl;
+                                startX = std::stoi(x);
+                                startY = std::stoi(y);
+                            }
+                            else if (text.find("to") != std::string::npos)
+                            {
+                                std::string to = text.substr(text.find('{') + 1, text.find('}') - text.find('{') - 1);
+                                std::string x = to.substr(0, to.find(' '));
+                                std::string y = to.substr(to.find(' ') + 1, to.size());
+                                output << x << " " << y << std::endl;
+                                targetX = std::stoi(x);
+                                targetY = std::stoi(y);
+                            }
+                            else
+                            {
+                                output << "Error parsing message" << std::endl;
+                            }
+                            output << text << std::endl;
+                        }
+                        std::string test = "From: " + std::to_string(startX) + " " + std::to_string(startY) + " To: " + std::to_string(targetX) + " " + std::to_string(targetY);
+                        output << test << std::endl;
+                        std::string messageToSend = (tryMove(startX, startY, targetX, targetY, board)) ? "True" : "False";
+                        send(fds[i].fd, messageToSend.c_str(), messageToSend.size(), 0);
+                    }
+                }
+                else
+                {
+                    output << "No events from: " << fds[i].fd << std::endl;
+                }
+
             }
-            if (N == 0)
-            {
-                std::cerr << "Peer socket not available, closing connection" << std::endl;
-                closeSockets();
-                exit(2);
-            }
-            std::string message {buf, N};
-            output << message << std::endl;
+
+
         }
-        else if (polls < 0)
+        else if (polls <= 0)
         {
             std::cerr << "Nothing to receive" << std::endl;
             closeSockets();
@@ -485,4 +543,10 @@ void Game::closeSockets()
 {
     shutdown(serverFD, SHUT_RDWR);
     close(serverFD);
+
+    shutdown(clientOneFD, SHUT_RDWR);
+    close(clientOneFD);
+
+    shutdown(clientTwoFD, SHUT_RDWR);
+    close(clientTwoFD);
 }

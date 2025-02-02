@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include <unistd.h>
+#include <poll.h>
 
 #include "resourceManager.hpp"
 
@@ -48,7 +49,7 @@ GameClient::GameClient(Game* game, std::ostream & output, std::string const& ser
 
     freeaddrinfo(result);
 
-    send(serverFD, "test", 4, 0);
+    //send(serverFD, "test", 4, 0);
 
     output << "Client connected" << std::endl;
 }
@@ -151,6 +152,9 @@ void GameClient::run()
     output << "Starting game loop" << std::endl;
     while (running)
     {
+
+        
+
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
@@ -201,6 +205,7 @@ void GameClient::run()
                         else
                         {
                             game->tryMove(chosenX, chosenY, boardX, boardY, localBoard);
+                            tryMove(chosenX, chosenY, boardX, boardY);
                             chosenPiece = Piece{};
                             chosenX = -1;
                             chosenY = -1;
@@ -327,8 +332,61 @@ void GameClient::run()
     SDL_Quit();
 }
 
+std::string GameClient::sendAndReceiveToServer(std::string const& message)
+{
+    int N = send(serverFD, message.c_str(), message.size(), 0);
+    if (N == -1)
+    {
+        output << "Nothing sent, exiting." << std::endl;
+        exit(1);
+    }
+    char buf[1024];
+    struct pollfd fds[1];
+    fds[0].fd = serverFD;
+    fds[0].events = POLLIN;
+    N = {};
+    int polls = poll(fds, 1, -1);
+    if (polls > 0)
+    {
+        N = recv(serverFD, buf, sizeof(buf), 0);
+        if (N == -1)
+        {
+            std::cerr << "Socket failed when receiving message" << std::endl;
+            closeSocket();
+            exit(1);
+        }
+        if (N == 0)
+        {
+            std::cerr << "Peer socket not available, closing connection" << std::endl;
+            closeSocket();
+            exit(2);
+        }
+        std::string message {buf, N};
+        output << message << std::endl;
+        return message;
+
+    }
+    else if (polls < 0)
+    {
+        std::cerr << "Nothing to receive" << std::endl;
+        closeSocket();
+    }
+
+    return "";
+}
+
 void GameClient::closeSocket()
 {
     shutdown(serverFD, SHUT_RDWR);
     close(serverFD);
+}
+
+bool GameClient::tryMove(int chosenX, int chosenY, int boardX, int boardY)
+{
+    std::string move = "MOVE: from{ " + std::to_string(chosenX) + " " + std::to_string(chosenY) + " } to{ " + std::to_string(boardX) + " " + std::to_string(boardY) + " }";
+    std::string response = sendAndReceiveToServer(move);
+
+    output << response << std::endl;
+
+    return true;
 }

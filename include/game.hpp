@@ -47,6 +47,6 @@ private:
     bool _isGameOver{false};
 
     int serverFD{-1};
-    int whiteClientFD{-1};
-    int blackClientFD{-1};
+    int clientOneFD{-1};
+    int clientTwoFD{-1};
 };
