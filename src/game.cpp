@@ -192,6 +192,24 @@ void Game::run()
                         send(clientOneFD, message.c_str(), message.size(), 0);
                         send(clientTwoFD, message.c_str(), message.size(), 0);
                     }
+                    else if (message.substr(0, message.find(':')) == "Request")
+                    {
+                        std::string response = "Status: 1\nPlayer: ";
+                        if (clientOneFD == fds[i].fd)
+                        {
+                            response += "White";
+                        }
+                        else if (clientTwoFD == fds[i].fd)
+                        {
+                            response += "Black";
+                        }
+                        response += "\n";
+                        send(fds[i].fd, response.c_str(), response.size(), 0);
+                    }
+                    else
+                    {
+                        output << "Unknown message" << std::endl;
+                    }
                 }
                 else
                 {

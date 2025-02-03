@@ -49,7 +49,37 @@ GameClient::GameClient(Game* game, std::ostream & output, std::string const& ser
 
     freeaddrinfo(result);
 
-    //send(serverFD, "test", 4, 0);
+    std::string response = sendAndReceiveToServer("Request: Connect");
+    std::stringstream ss{};
+    ss << response;
+    std::string text;
+    while (getline(ss, text, '\n'))
+    {
+        output << text << std::endl;
+        if (text == "Status: 1")
+        {
+            output << "Connection to server succeeded" << std::endl;
+        }
+        else if (text == "Status: 0")
+        {
+            output << "Connection to server failed, exiting." << std::endl;
+            closeSocket();
+            exit(1);
+        }
+        else if (text == "Player: White")
+        {
+            output << "Player is white" << std::endl;
+            clientIsPlayerWhite = true;
+            break;
+        }
+        else if (text == "Player: Black")
+        {
+            output << "Player is black" << std::endl;
+            clientIsPlayerWhite = false;
+            break;
+        }
+    }
+
 
     output << "Client connected" << std::endl;
 }
@@ -152,7 +182,7 @@ void GameClient::run()
     output << "Starting game loop" << std::endl;
     while (running)
     {
-        std::string message {receiveMessage()};
+        std::string message {receiveMessage(20)};
         if (!message.empty())
         {
             output << message << std::endl;
@@ -389,14 +419,19 @@ void GameClient::run()
     SDL_Quit();
 }
 
-std::string GameClient::receiveMessage()
+std::string GameClient::receiveMessage(int timeout)
 {
+    if (timeout < -1 || timeout > 1000)
+    {
+        output << "Invalid timeout value, exiting." << std::endl;
+        exit(1);
+    }
     char buf[1024];
     struct pollfd fds[1];
     fds[0].fd = serverFD;
     fds[0].events = POLLIN;
     int N = {};
-    int polls = poll(fds, 1, 20);
+    int polls = poll(fds, 1, timeout);
     if (polls > 0)
     {
         N = recv(serverFD, buf, sizeof(buf), 0);
@@ -436,7 +471,7 @@ std::string GameClient::sendAndReceiveToServer(std::string const& message)
         exit(1);
     }
     
-    return receiveMessage();
+    return receiveMessage(-1);
 }
 
 void GameClient::closeSocket()

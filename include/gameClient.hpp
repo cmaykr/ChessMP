@@ -20,12 +20,13 @@ public:
     void run();
 private:
     std::string sendAndReceiveToServer(std::string const& message);
-    std::string receiveMessage();
+    std::string receiveMessage(int timeout);
     void closeSocket();
     bool tryMove(int chosenX, int chosenY, int boardX, int boardY);
 
     std::array<std::array<Piece, 8>, 8> &localBoard;
     bool isPlayerWhitesTurn{true};
+    bool clientIsPlayerWhite;
     std::ostream &output;
 
     Game* game;
