@@ -175,10 +175,22 @@ void Game::run()
                             output << text << std::endl;
                         }
                         std::string test = "From: " + std::to_string(startX) + " " + std::to_string(startY) + " To: " + std::to_string(targetX) + " " + std::to_string(targetY);
-                        output << test << std::endl;
-                        std::string messageToSend = (tryMove(startX, startY, targetX, targetY, board)) ? "True" : "False";
-                        send(clientOneFD, messageToSend.c_str(), messageToSend.size(), 0);
-                        send(clientTwoFD, messageToSend.c_str(), messageToSend.size(), 0);
+                        //output << test << std::endl;
+                        std::stringstream response{};
+                        response << message << std::endl << "Status: ";
+                        if (tryMove(startX, startY, targetX, targetY, board))
+                        {
+                            response << "1";
+                        }
+                        else
+                        {
+                            response << "0";
+                        }
+                        response << std::endl;
+                        message = response.str();
+                        output << message << std::endl;
+                        send(clientOneFD, message.c_str(), message.size(), 0);
+                        send(clientTwoFD, message.c_str(), message.size(), 0);
                     }
                 }
                 else
@@ -301,7 +313,6 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
 
 bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
-    // Very long method.
     board = localBoard;
 
     if (isMoveValid(startX, startY, targetX, targetY, localBoard) && _isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
@@ -542,12 +553,15 @@ bool Game::isGameOver() const
 
 void Game::closeSockets()
 {
-    shutdown(serverFD, SHUT_RDWR);
+    while (recv(serverFD, nullptr, 0, 0) > 0)
+        continue;
     close(serverFD);
 
-    shutdown(clientOneFD, SHUT_RDWR);
+    while (recv(clientOneFD, nullptr, 0, 0) > 0)
+        continue;
     close(clientOneFD);
 
-    shutdown(clientTwoFD, SHUT_RDWR);
+    while (recv(clientTwoFD, nullptr, 0, 0) > 0)
+        continue;
     close(clientTwoFD);
 }
