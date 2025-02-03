@@ -148,23 +148,23 @@ void Game::run()
                         {
                             std::stringstream ss2{text};
                             int num;
-                            ss2 >> num;
-                            output << num << std::endl;
                             if (text.find("from") != std::string::npos)
                             {
-                                std::string from = text.substr(text.find('{') + 1, text.find('}') - text.find('{') - 1);
+                                std::string from = text.substr(text.find('{') + 2, text.find('}') - text.find('{'));
+                                output << from << "." <<  std::endl;
                                 std::string x = from.substr(0, from.find(' '));
-                                std::string y = from.substr(from.find(' ') + 1, from.size());
-                                output << x << " " << y << std::endl;
+                                std::string y = from.substr(from.find(' ') + 1, 1);
+                                output << x << " " << y << "." << std::endl;
                                 startX = std::stoi(x);
                                 startY = std::stoi(y);
                             }
                             else if (text.find("to") != std::string::npos)
                             {
-                                std::string to = text.substr(text.find('{') + 1, text.find('}') - text.find('{') - 1);
+                                std::string to = text.substr(text.find('{') + 2, text.find('}') - text.find('{') - 1);
+                                output << to << std::endl;
                                 std::string x = to.substr(0, to.find(' '));
-                                std::string y = to.substr(to.find(' ') + 1, to.size());
-                                output << x << " " << y << std::endl;
+                                std::string y = to.substr(to.find(' ') + 1, 1);
+                                output << x << " " << y << "." << std::endl;
                                 targetX = std::stoi(x);
                                 targetY = std::stoi(y);
                             }
@@ -177,7 +177,8 @@ void Game::run()
                         std::string test = "From: " + std::to_string(startX) + " " + std::to_string(startY) + " To: " + std::to_string(targetX) + " " + std::to_string(targetY);
                         output << test << std::endl;
                         std::string messageToSend = (tryMove(startX, startY, targetX, targetY, board)) ? "True" : "False";
-                        send(fds[i].fd, messageToSend.c_str(), messageToSend.size(), 0);
+                        send(clientOneFD, messageToSend.c_str(), messageToSend.size(), 0);
+                        send(clientTwoFD, messageToSend.c_str(), messageToSend.size(), 0);
                     }
                 }
                 else

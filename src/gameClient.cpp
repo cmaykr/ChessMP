@@ -152,7 +152,11 @@ void GameClient::run()
     output << "Starting game loop" << std::endl;
     while (running)
     {
-
+        std::string message {receiveMessage()};
+        if (!message.empty())
+        {
+            output << message << std::endl;
+        }
         
 
         SDL_Event e;
@@ -169,7 +173,7 @@ void GameClient::run()
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
 
-                    if (chosenPiece.isEmpty() && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == game->isPlayerWhitesTurn())
+                    if (chosenPiece.isEmpty() && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == isPlayerWhitesTurn)
                     {
                         chosenPiece = localBoard[boardX][boardY];
                         chosenX = boardX;
@@ -204,12 +208,16 @@ void GameClient::run()
                         }
                         else
                         {
-                            game->tryMove(chosenX, chosenY, boardX, boardY, localBoard);
-                            tryMove(chosenX, chosenY, boardX, boardY);
-                            chosenPiece = Piece{};
-                            chosenX = -1;
-                            chosenY = -1;
-                            clickMove = false;
+                            if (tryMove(chosenX, chosenY, boardX, boardY))
+                            {
+                                localBoard[boardX][boardY] = chosenPiece;
+                                localBoard[chosenX][chosenY] = Piece{};
+                                chosenX = -1;
+                                chosenY = -1;
+                                clickMove = false;
+                                chosenPiece = Piece{};
+                                isPlayerWhitesTurn = !isPlayerWhitesTurn;
+                            }
                         }
                     }
                     break;
@@ -332,20 +340,14 @@ void GameClient::run()
     SDL_Quit();
 }
 
-std::string GameClient::sendAndReceiveToServer(std::string const& message)
+std::string GameClient::receiveMessage()
 {
-    int N = send(serverFD, message.c_str(), message.size(), 0);
-    if (N == -1)
-    {
-        output << "Nothing sent, exiting." << std::endl;
-        exit(1);
-    }
     char buf[1024];
     struct pollfd fds[1];
     fds[0].fd = serverFD;
     fds[0].events = POLLIN;
-    N = {};
-    int polls = poll(fds, 1, -1);
+    int N = {};
+    int polls = poll(fds, 1, 20);
     if (polls > 0)
     {
         N = recv(serverFD, buf, sizeof(buf), 0);
@@ -370,9 +372,22 @@ std::string GameClient::sendAndReceiveToServer(std::string const& message)
     {
         std::cerr << "Nothing to receive" << std::endl;
         closeSocket();
+        exit(1);
     }
 
     return "";
+}
+
+std::string GameClient::sendAndReceiveToServer(std::string const& message)
+{
+    int N = send(serverFD, message.c_str(), message.size(), 0);
+    if (N == -1)
+    {
+        output << "Nothing sent, exiting." << std::endl;
+        exit(1);
+    }
+    
+    return receiveMessage();
 }
 
 void GameClient::closeSocket()
@@ -384,9 +399,13 @@ void GameClient::closeSocket()
 bool GameClient::tryMove(int chosenX, int chosenY, int boardX, int boardY)
 {
     std::string move = "MOVE: from{ " + std::to_string(chosenX) + " " + std::to_string(chosenY) + " } to{ " + std::to_string(boardX) + " " + std::to_string(boardY) + " }";
+    output << move << std::endl;
     std::string response = sendAndReceiveToServer(move);
 
-    output << response << std::endl;
+    if (response == "True")
+    {
+        return true;
+    }
 
-    return true;
+    return false;
 }
