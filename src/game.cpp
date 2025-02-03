@@ -13,7 +13,7 @@
 #include "resourceManager.hpp"
 
 Game::Game(std::ostream & output, std::string const& port)
-    : board{}, output{output}, _isPlayerWhitesTurn{true}
+    : gameBoard{}, output{output}, _isPlayerWhitesTurn{true}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -28,32 +28,32 @@ Game::Game(std::ostream & output, std::string const& port)
     Piece queenB {"models/queen.png", PieceType::Queen, false};
     Piece kingB {"models/king.png", PieceType::King, false};
 
-    board[0][7] = rook;
-    board[1][7] = knight;
-    board[2][7] = bishop;
-    board[3][7] = queen;
-    board[4][7] = king;
-    board[5][7] = bishop;
-    board[6][7] = knight;
-    board[7][7] = rook;
+    gameBoard[0][7] = rook;
+    gameBoard[1][7] = knight;
+    gameBoard[2][7] = bishop;
+    gameBoard[3][7] = queen;
+    gameBoard[4][7] = king;
+    gameBoard[5][7] = bishop;
+    gameBoard[6][7] = knight;
+    gameBoard[7][7] = rook;
 
     for (int i{}; i < 8; i++)
     {
-        board[i][6] = pawn;
+        gameBoard[i][6] = pawn;
     }
 
-    board[0][0] = rookB;
-    board[1][0] = knightB;
-    board[2][0] = bishopB;
-    board[3][0] = queenB;
-    board[4][0] = kingB;
-    board[5][0] = bishopB;
-    board[6][0] = knightB;
-    board[7][0] = rookB;
+    gameBoard[0][0] = rookB;
+    gameBoard[1][0] = knightB;
+    gameBoard[2][0] = bishopB;
+    gameBoard[3][0] = queenB;
+    gameBoard[4][0] = kingB;
+    gameBoard[5][0] = bishopB;
+    gameBoard[6][0] = knightB;
+    gameBoard[7][0] = rookB;
 
     for (int i{}; i < 8; i++)
     {
-        board[i][1] = pawnB;
+        gameBoard[i][1] = pawnB;
     }
 }
 
@@ -178,7 +178,7 @@ void Game::run()
                         //output << test << std::endl;
                         std::stringstream response{};
                         response << message << std::endl << "Status: ";
-                        if (tryMove(startX, startY, targetX, targetY, board))
+                        if (tryMove(startX, startY, targetX, targetY, gameBoard))
                         {
                             response << "1";
                         }
@@ -230,7 +230,7 @@ void Game::run()
 
 std::array<std::array<Piece, 8>, 8>& Game::getBoard()
 {
-    return board;
+    return gameBoard;
 }
 
 bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
@@ -331,7 +331,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
 
 bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
-    board = localBoard;
+    gameBoard = localBoard;
 
     if (isMoveValid(startX, startY, targetX, targetY, localBoard) && _isPlayerWhitesTurn == localBoard[startX][startY].isPieceWhite())
     {
@@ -340,9 +340,9 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
             output << "Move will cause a check" << std::endl;
             return false;
         }
-        Piece piece = board[startX][startY];
-        board[targetX][targetY] = piece;
-        board[startX][startY] = Piece{};
+        Piece piece = gameBoard[startX][startY];
+        gameBoard[targetX][targetY] = piece;
+        gameBoard[startX][startY] = Piece{};
         if (isCheck(targetX, targetY))
         {
             output << "King is in check" << std::endl;
@@ -438,7 +438,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
 
 bool Game::isCheck(int targetX, int targetY)
 {
-    Piece movedPiece = board[targetX][targetY];
+    Piece movedPiece = gameBoard[targetX][targetY];
 
     Piece enemyKing{};
     int xKing{-1};
@@ -448,9 +448,9 @@ bool Game::isCheck(int targetX, int targetY)
     {
         for (int y {}; y < 8; y++)
         {
-            if (board[x][y].getType() == PieceType::King && board[x][y].isPieceWhite() != _isPlayerWhitesTurn)
+            if (gameBoard[x][y].getType() == PieceType::King && gameBoard[x][y].isPieceWhite() != _isPlayerWhitesTurn)
             {
-                enemyKing = board[x][y];
+                enemyKing = gameBoard[x][y];
                 xKing = x;
                 yKing = y;
                 break;
@@ -464,14 +464,14 @@ bool Game::isCheck(int targetX, int targetY)
         exit(1);
     }
 
-    return isMoveValid(targetX, targetY, xKing, yKing, board);
+    return isMoveValid(targetX, targetY, xKing, yKing, gameBoard);
 }
 
 bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     std::array<std::array<Piece, 8>, 8> futureBoard = localBoard;
 
-    futureBoard[targetX][targetY] = board[startX][startY];
+    futureBoard[targetX][targetY] = gameBoard[startX][startY];
     futureBoard[startX][startY] = Piece{};
     int kingX{};
     int kingY{};
@@ -509,7 +509,7 @@ bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, 
 
 bool Game::isCheckMate(int targetX, int targetY)
 {
-    std::array<std::array<Piece, 8>, 8> futureBoard = board;
+    std::array<std::array<Piece, 8>, 8> futureBoard = gameBoard;
 
     if (isCheck(targetX, targetY))
     {
@@ -557,17 +557,6 @@ bool Game::isCheckMate(int targetX, int targetY)
 
     return false;
 }
-
-bool Game::isPlayerWhitesTurn() const
-{
-    return _isPlayerWhitesTurn;
-}
-
-bool Game::isGameOver() const
-{
-    return _isGameOver;
-}
-
 
 void Game::closeSockets()
 {

@@ -20,9 +20,12 @@ public:
     Piece();
     Piece(std::string const& texturePath, PieceType const& pieceType, bool isWhite);
 
-
+    /// @brief Determines if the object is empty.
     bool isEmpty() const;
+    /// @brief Returns the texture path.
     std::string getTexture() const;
+    /// @brief Gets the type of the piece as a PieceType enum value. If piece is empty, returns UNKNOWN.
+    /// @return The type of the piece.
     PieceType getType() const;
     bool isPieceWhite() const;
 

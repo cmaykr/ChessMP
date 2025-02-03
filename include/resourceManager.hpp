@@ -10,12 +10,12 @@
 #include <fstream>
 
 struct TexDeleter
+{
+    void operator()(SDL_Texture *tex) const
     {
-        void operator()(SDL_Texture *tex) const
-        {
-            SDL_DestroyTexture(tex);
-        }
-    };
+        SDL_DestroyTexture(tex);
+    }
+};
 
 class ResourceManager
 {
