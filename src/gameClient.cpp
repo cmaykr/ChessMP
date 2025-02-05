@@ -185,11 +185,11 @@ void GameClient::run()
         std::string message {receiveMessage(20)};
         if (!message.empty())
         {
-            output << message << std::endl;
+            output << "Received message from server: " << std::endl << "{" << std::endl << message << "}" << std::endl;
 
             if (message.substr(message.find("Status: ")+8, 1) == "1")
             {
-                output << "Move successful" << std::endl;
+                
                 int startX{}, startY{};
                 int targetX{}, targetY{};
                 std::stringstream ss{message.substr(message.find(':') + 1, message.size())};
@@ -201,28 +201,19 @@ void GameClient::run()
                     if (text.find("from") != std::string::npos)
                     {
                         std::string from = text.substr(text.find('{') + 2, text.find('}') - text.find('{'));
-                        output << from << "." <<  std::endl;
                         std::string x = from.substr(0, from.find(' '));
                         std::string y = from.substr(from.find(' ') + 1, 1);
-                        output << x << " " << y << "." << std::endl;
                         startX = std::stoi(x);
                         startY = std::stoi(y);
                     }
                     else if (text.find("to") != std::string::npos)
                     {
                         std::string to = text.substr(text.find('{') + 2, text.find('}') - text.find('{') - 1);
-                        output << to << std::endl;
                         std::string x = to.substr(0, to.find(' '));
                         std::string y = to.substr(to.find(' ') + 1, 1);
-                        output << x << " " << y << "." << std::endl;
                         targetX = std::stoi(x);
                         targetY = std::stoi(y);
                     }
-                    else
-                    {
-                        output << "Error parsing message" << std::endl;
-                    }
-                    output << text << std::endl;
                 }
 
                 output << "Moving piece" << std::endl;
@@ -230,6 +221,8 @@ void GameClient::run()
                 localBoard[targetX][targetY] = localBoard[startX][startY];
                 localBoard[startX][startY] = Piece{};
                 isPlayerWhitesTurn = !isPlayerWhitesTurn;
+
+                output << "Move successful" << std::endl;
             }
             else
             {
@@ -482,9 +475,9 @@ void GameClient::closeSocket()
 bool GameClient::tryMove(int chosenX, int chosenY, int boardX, int boardY)
 {
     std::string move = "MOVE: from{ " + std::to_string(chosenX) + " " + std::to_string(chosenY) + " } to{ " + std::to_string(boardX) + " " + std::to_string(boardY) + " }";
-    output << move << std::endl;
+    output << "Sending request to server: [" << move << "]" << std::endl;
     std::string response = sendAndReceiveToServer(move);
-    output << "Response: " << response << std::endl;
+    output << "Response from server: " << std::endl << "{" << response << "}" << std::endl;
 
     if (response.substr(response.find("Status: ")+8, 1) == "1")
     {

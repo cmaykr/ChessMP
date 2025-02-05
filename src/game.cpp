@@ -1,3 +1,7 @@
+///
+/// Many of these methods are brute forcing the solution, and could be optimized. Is it needed though? Future consideration
+/// Very long file, refactoring?
+
 #include "game.hpp"
 
 #include <iostream>
@@ -117,7 +121,6 @@ void Game::run()
         int polls = poll(fds, 2, -1);
         if (polls > 0)
         {
-            output << "Nr of events: " << polls << std::endl;
             for (int i{}; i < 2; i++)
             {
                 if (fds[i].revents == POLLIN)
@@ -136,7 +139,7 @@ void Game::run()
                         exit(2);
                     }
                     std::string message {buf, N};
-                    output << message << " From: " << fds[i].fd << std::endl;
+                    output << "Received message: " << message << " From FD: " << fds[i].fd << std::endl;
 
                     if (message.substr(0, message.find(':')) == "MOVE")
                     {
@@ -151,20 +154,16 @@ void Game::run()
                             if (text.find("from") != std::string::npos)
                             {
                                 std::string from = text.substr(text.find('{') + 2, text.find('}') - text.find('{'));
-                                output << from << "." <<  std::endl;
                                 std::string x = from.substr(0, from.find(' '));
                                 std::string y = from.substr(from.find(' ') + 1, 1);
-                                output << x << " " << y << "." << std::endl;
                                 startX = std::stoi(x);
                                 startY = std::stoi(y);
                             }
                             else if (text.find("to") != std::string::npos)
                             {
                                 std::string to = text.substr(text.find('{') + 2, text.find('}') - text.find('{') - 1);
-                                output << to << std::endl;
                                 std::string x = to.substr(0, to.find(' '));
                                 std::string y = to.substr(to.find(' ') + 1, 1);
-                                output << x << " " << y << "." << std::endl;
                                 targetX = std::stoi(x);
                                 targetY = std::stoi(y);
                             }
@@ -172,7 +171,7 @@ void Game::run()
                             {
                                 output << "Error parsing message" << std::endl;
                             }
-                            output << text << std::endl;
+
                         }
                         std::string test = "From: " + std::to_string(startX) + " " + std::to_string(startY) + " To: " + std::to_string(targetX) + " " + std::to_string(targetY);
                         //output << test << std::endl;
@@ -188,7 +187,7 @@ void Game::run()
                         }
                         response << std::endl;
                         message = response.str();
-                        output << message << std::endl;
+
                         send(clientOneFD, message.c_str(), message.size(), 0);
                         send(clientTwoFD, message.c_str(), message.size(), 0);
                     }
