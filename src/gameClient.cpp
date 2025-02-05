@@ -176,7 +176,7 @@ void GameClient::run()
     int initY{};
     int chosenX{};
     int chosenY{};
-    bool clickMove = false;
+    bool clickMove = true;
     Piece chosenPiece{};
 
     output << "Starting game loop" << std::endl;
@@ -229,7 +229,6 @@ void GameClient::run()
                 output << "Move failed" << std::endl;
             }
         }
-        
 
         SDL_Event e;
         while (SDL_PollEvent(&e))
@@ -245,15 +244,36 @@ void GameClient::run()
                     int boardX = (x - w / 2 + size*4) / 40;
                     int boardY = (y - h / 2 + size*4) / 40;
 
-                    if (chosenPiece.isEmpty() && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == isPlayerWhitesTurn)
+                    if (chosenX == boardX && chosenY == boardY)
+                        clickMove = false;
+                    
+                    if (chosenPiece.isEmpty() && !localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == clientIsPlayerWhite)
                     {
                         chosenPiece = localBoard[boardX][boardY];
                         chosenX = boardX;
                         chosenY = boardY;
                     }
-                    else if (!chosenPiece.isEmpty() && boardX == chosenX && boardY == chosenY)
+                    else if (!chosenPiece.isEmpty())
                     {
-                        clickMove = false;
+                        if (boardX == chosenX && boardY == chosenY)
+                            clickMove = false;  
+
+                        if (!localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == clientIsPlayerWhite)
+                        {
+                            chosenPiece = localBoard[boardX][boardY];
+                            chosenX = boardX;
+                            chosenY = boardY;
+                        }
+                        if (tryMove(chosenX, chosenY, boardX, boardY))
+                        {
+                            localBoard[boardX][boardY] = chosenPiece;
+                            localBoard[chosenX][chosenY] = Piece{};
+                            chosenX = -1;
+                            chosenY = -1;
+                            clickMove = true;
+                            chosenPiece = Piece{};
+                            isPlayerWhitesTurn = !isPlayerWhitesTurn;
+                        }
                     }
                     initX = boardX;
                     initY = boardY;
@@ -261,37 +281,7 @@ void GameClient::run()
                 }
                 case SDL_MOUSEBUTTONUP:
                 {
-                    SDL_GetMouseState(&x, &y);
-                    int boardX = (x - w / 2 + size*4) / 40;
-                    int boardY = (y - h / 2 + size*4) / 40;
-                    
-                    if (boardX == chosenX && boardY == chosenY)
-                    {
-                        if (!chosenPiece.isEmpty())
-                            clickMove = true;
-                    }
-                    else if (!chosenPiece.isEmpty())
-                    {
-                        if (!localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == chosenPiece.isPieceWhite()) // Why does checking if spot is empty needed twice?
-                        {
-                            chosenPiece = localBoard[boardX][boardY];
-                            chosenX = boardX;
-                            chosenY = boardY;
-                        }
-                        else
-                        {
-                            if (clientIsPlayerWhite == chosenPiece.isPieceWhite() && tryMove(chosenX, chosenY, boardX, boardY))
-                            {
-                                localBoard[boardX][boardY] = chosenPiece;
-                                localBoard[chosenX][chosenY] = Piece{};
-                                chosenX = -1;
-                                chosenY = -1;
-                                clickMove = false;
-                                chosenPiece = Piece{};
-                                isPlayerWhitesTurn = !isPlayerWhitesTurn;
-                            }
-                        }
-                    }
+                    clickMove = true;
                     break;
                 }
             }
@@ -312,7 +302,7 @@ void GameClient::run()
                     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
                 SDL_RenderFillRect(renderer.get(), &box);
 
-                if (!chosenPiece.isEmpty() && i == initY && j == initX)
+                if (!chosenPiece.isEmpty() && i == chosenY && j == chosenX)
                 {
                     SDL_SetTextureColorMod(square, 0, 255, 0);
                     SDL_RenderCopy(renderer.get(), square, NULL, &box);
