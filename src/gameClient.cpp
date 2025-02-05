@@ -280,7 +280,7 @@ void GameClient::run()
                         }
                         else
                         {
-                            if (tryMove(chosenX, chosenY, boardX, boardY))
+                            if (clientIsPlayerWhite == chosenPiece.isPieceWhite() && tryMove(chosenX, chosenY, boardX, boardY))
                             {
                                 localBoard[boardX][boardY] = chosenPiece;
                                 localBoard[chosenX][chosenY] = Piece{};
