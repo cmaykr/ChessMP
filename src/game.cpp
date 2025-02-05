@@ -476,6 +476,7 @@ bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, 
     int kingX{};
     int kingY{};
 
+    /// TODO: Move to its own function.
     for (int x {}; x < 8; x++)
     {
         for (int y {}; y < 8; y++)
@@ -490,6 +491,7 @@ bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, 
         }
     }
 
+    /// Can be optimized by only checking in straight lines and diagonals, and for the horse movement. All other pieces can be ignored. TODO: Optimize
     for (int x{}; x < 8; x++)
     {
         for (int y{}; y < 8; y++)
@@ -511,51 +513,67 @@ bool Game::isCheckMate(int targetX, int targetY)
 {
     std::array<std::array<Piece, 8>, 8> futureBoard = gameBoard;
 
-    if (isCheck(targetX, targetY))
+    int kingX{};
+    int kingY{};
+
+    for (int x {}; x < 8; x++)
     {
-        int kingX{};
-        int kingY{};
-
-        for (int x {}; x < 8; x++)
+        for (int y {}; y < 8; y++)
         {
-            for (int y {}; y < 8; y++)
+            if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() != _isPlayerWhitesTurn)
             {
-                if (futureBoard[x][y].getType() == PieceType::King && futureBoard[x][y].isPieceWhite() != _isPlayerWhitesTurn)
-                {
-                    kingX = x;
-                    kingY = y;
+                kingX = x;
+                kingY = y;
 
-                    break;
+                break;
+            }
+        }
+    }
+    Piece checkedKing = futureBoard[kingX][kingY];
+
+    for (int dX{-1}; dX <= 1; dX++)
+    {
+        for (int dY{-1}; dY <= 1; dY++)
+        {
+            if (kingX + dX < 0 || kingX + dX > 7 || kingY + dY < 0 || kingY + dY > 7)
+            {
+                continue;
+            }
+            if (dX == 0 && dY == 0)
+                continue;
+
+            if (isMoveValid(kingX, kingY, kingX + dX, kingY + dY, futureBoard) )
+            {
+                if (!willMoveCauseCheck(kingX, kingY, kingX + dX, kingY + dY, futureBoard))
+                {
+                    return false;
                 }
             }
         }
-        Piece checkedKing = futureBoard[kingX][kingY];
+    }
 
-        for (int dX{-1}; dX <= 1; dX++)
+    for (int x{}; x < 8; x++)
+    {
+        for (int y{}; y < 8; y++)
         {
-            for (int dY{-1}; dY <= 1; dY++)
+            if (!futureBoard[x][y].isEmpty() && futureBoard[x][y].isPieceWhite() == _isPlayerWhitesTurn)
             {
-                if (kingX + dX < 0 || kingX + dX > 7 || kingY + dY < 0 || kingY + dY > 7)
+                for (int dx{}; dx < 8; dx++)
                 {
-                    continue;
-                }
-                if (dX == 0 && dY == 0)
-                    continue;
-
-                if (!willMoveCauseCheck(kingX, kingY, kingX + dX, kingY + dY, futureBoard))
-                {
-                    if (isMoveValid(kingX, kingY, kingX + dX, kingY + dY, futureBoard) )
+                    for (int dy{}; dy < 8; dy++)
                     {
-                        return false;
+                        if (isMoveValid(x, y, dx, dy, futureBoard) && !willMoveCauseCheck(x, y, dx, dy, futureBoard))
+                        {
+                            return false;
+                        }
                     }
                 }
             }
         }
-        _isGameOver = true;
-        return true;
     }
+    _isGameOver = true;
+    return true;
 
-    return false;
 }
 
 void Game::closeSockets()
