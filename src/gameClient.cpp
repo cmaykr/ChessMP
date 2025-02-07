@@ -8,7 +8,7 @@
 
 #include "resourceManager.hpp"
 
-GameClient::GameClient(Game* game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort)
+GameClient::GameClient(GameServer* game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort)
     : localBoard{game->getBoard()}, output(output), game(game)
 {
     if (game == nullptr)
@@ -282,6 +282,29 @@ void GameClient::run()
                 case SDL_MOUSEBUTTONUP:
                 {
                     clickMove = true;
+
+                    if (!chosenPiece.isEmpty())
+                    {
+                        SDL_GetMouseState(&x, &y);
+                        int boardX = (x - w / 2 + size*4) / 40;
+                        int boardY = (y - h / 2 + size*4) / 40;
+
+                        if (!localBoard[boardX][boardY].isEmpty() && localBoard[boardX][boardY].isPieceWhite() == clientIsPlayerWhite)
+                        {
+                            chosenPiece = localBoard[boardX][boardY];
+                            chosenX = boardX;
+                            chosenY = boardY;
+                        }
+                        else if (tryMove(chosenX, chosenY, boardX, boardY))
+                        {
+                            localBoard[boardX][boardY] = chosenPiece;
+                            localBoard[chosenX][chosenY] = Piece{};
+                            chosenX = -1;
+                            chosenY = -1;
+                            chosenPiece = Piece{};
+                            isPlayerWhitesTurn = !isPlayerWhitesTurn;
+                        }
+                    }
                     break;
                 }
             }
@@ -413,7 +436,7 @@ std::string GameClient::receiveMessage(int timeout)
     struct pollfd fds[1];
     fds[0].fd = serverFD;
     fds[0].events = POLLIN;
-    int N = {};
+    long unsigned int N = {};
     int polls = poll(fds, 1, timeout);
     if (polls > 0)
     {
@@ -431,7 +454,7 @@ std::string GameClient::receiveMessage(int timeout)
             exit(2);
         }
         std::string message {buf, N};
-        //output << message << std::endl;
+
         return message;
 
     }

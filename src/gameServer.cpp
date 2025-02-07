@@ -2,7 +2,7 @@
 /// Many of these methods are brute forcing the solution, and could be optimized. Is it needed though? Future consideration
 /// Very long file, refactoring?
 
-#include "game.hpp"
+#include "gameServer.hpp"
 
 #include <iostream>
 #include <SDL2/SDL_image.h>
@@ -16,7 +16,7 @@
 #include "piece.hpp"
 #include "resourceManager.hpp"
 
-Game::Game(std::ostream & output, std::string const& port)
+GameServer::GameServer(std::ostream & output, std::string const& port)
     : gameBoard{}, output{output}, _isPlayerWhitesTurn{true}
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
@@ -61,12 +61,12 @@ Game::Game(std::ostream & output, std::string const& port)
     }
 }
 
-Game::~Game()
+GameServer::~GameServer()
 {
     closeSockets();
 }
 
-void Game::run()
+void GameServer::run()
 {
     struct addrinfo hints;
     struct addrinfo *rp, *result;
@@ -117,7 +117,7 @@ void Game::run()
         fds[0].events = POLLIN;
         fds[1].fd = clientTwoFD;
         fds[1].events = POLLIN;
-        int N{};
+        long unsigned int N{};
         int polls = poll(fds, 2, -1);
         if (polls > 0)
         {
@@ -227,12 +227,12 @@ void Game::run()
     }
 }
 
-std::array<std::array<Piece, 8>, 8>& Game::getBoard()
+std::array<std::array<Piece, 8>, 8>& GameServer::getBoard()
 {
     return gameBoard;
 }
 
-bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+bool GameServer::isMoveValid(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     Piece piece = localBoard[startX][startY];
     
@@ -328,7 +328,7 @@ bool Game::isMoveValid(int startX, int startY, int targetX, int targetY, std::ar
     return validMove;
 }
 
-bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+bool GameServer::tryMove(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     gameBoard = localBoard;
 
@@ -358,7 +358,7 @@ bool Game::tryMove(int startX, int startY, int targetX, int targetY, std::array<
     return false;
 }
 
-bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+bool GameServer::isPieceBlockingTarget(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     // This can most likely be done in less code, or at least more readable.
     if (startX == targetX)
@@ -435,7 +435,7 @@ bool Game::isPieceBlockingTarget(int startX, int startY, int targetX, int target
     return true;
 }
 
-bool Game::isCheck(int targetX, int targetY)
+bool GameServer::isCheck(int targetX, int targetY)
 {
     Piece movedPiece = gameBoard[targetX][targetY];
 
@@ -466,7 +466,7 @@ bool Game::isCheck(int targetX, int targetY)
     return isMoveValid(targetX, targetY, xKing, yKing, gameBoard);
 }
 
-bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
+bool GameServer::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, std::array<std::array<Piece, 8>, 8> localBoard)
 {
     std::array<std::array<Piece, 8>, 8> futureBoard = localBoard;
 
@@ -508,7 +508,7 @@ bool Game::willMoveCauseCheck(int startX, int startY, int targetX, int targetY, 
     return false;
 }
 
-bool Game::isCheckMate(int targetX, int targetY)
+bool GameServer::isCheckMate(int targetX, int targetY)
 {
     std::array<std::array<Piece, 8>, 8> futureBoard = gameBoard;
 
@@ -575,7 +575,7 @@ bool Game::isCheckMate(int targetX, int targetY)
 
 }
 
-void Game::closeSockets()
+void GameServer::closeSockets()
 {
     while (recv(serverFD, nullptr, 0, 0) > 0)
         continue;

@@ -12,7 +12,7 @@ find_package(SDL2_image REQUIRED)
 
 include_directories(include)
 
-add_executable(chessClient src/client.cpp src/game.cpp src/gameClient.cpp src/piece.cpp)
+add_executable(chessClient src/client.cpp src/gameServer.cpp src/gameClient.cpp src/piece.cpp)
 target_link_libraries(chessClient PRIVATE SDL2::SDL2)
 target_link_libraries(chessClient PRIVATE SDL2_image::SDL2_image)
-add_executable(chessServer src/server.cpp src/game.cpp src/piece.cpp)
+add_executable(chessServer src/server.cpp src/gameServer.cpp src/piece.cpp)

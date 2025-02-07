@@ -1,9 +1,9 @@
 #include <iostream>
-#include "game.hpp"
+#include "gameServer.hpp"
 
 int main(int argc, char** argv)
 {
-    Game game{std::cout, "8080"};
+    GameServer game{std::cout, "8080"};
 
     game.run();
     return 0;

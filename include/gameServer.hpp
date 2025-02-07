@@ -10,13 +10,13 @@
 
 #include "piece.hpp"
 
-class Game
+class GameServer
 {
 public:
     /// @brief Initializes the game board with pieces in their starting positions, as they are in a standard chess game.
     /// The port parameter sets the port the server listens on for incoming connections.
-    Game(std::ostream & output, std::string const& port);
-    ~Game();
+    GameServer(std::ostream & output, std::string const& port);
+    ~GameServer();
 
     void run();
 

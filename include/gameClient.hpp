@@ -7,13 +7,13 @@
 #include <ostream>
 
 #include "piece.hpp"
-#include "game.hpp"
+#include "gameServer.hpp"
 
 class GameClient
 {
 public:
     /// @brief Initializes the game client and connects to the game server using the provided parameters for address and port.
-    GameClient(Game *game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort);
+    GameClient(GameServer *game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort);
     ~GameClient();
 
     /// @brief Starts the game loop and handles the client-facing game logic, player input and rendering. Also initializes the game and SDL.
@@ -39,7 +39,7 @@ private:
     bool clientIsPlayerWhite;
     std::ostream &output;
 
-    Game* game;
+    GameServer* game;
 
     int serverFD;
 };
