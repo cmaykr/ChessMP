@@ -8,16 +8,9 @@
 
 #include "resourceManager.hpp"
 
-GameClient::GameClient(GameServer* game, std::ostream & output, std::string const& serverAddress, std::string const& serverPort)
-    : localBoard{game->getBoard()}, output(output), game(game)
+GameClient::GameClient(std::ostream & output, std::string const& serverAddress, std::string const& serverPort)
+    : output(output)
 {
-    if (game == nullptr)
-    {
-        output << "Error: Game is not initialized in constructor." << std::endl;
-        exit(1);
-        return;
-    }
-
     struct addrinfo hints{};
     struct addrinfo *result, *rp;
 
@@ -79,7 +72,68 @@ GameClient::GameClient(GameServer* game, std::ostream & output, std::string cons
             break;
         }
     }
+    response = sendAndReceiveToServer("Requst: Full board");
+    output << response << std::endl;
 
+    ss = std::stringstream{response};
+    std::string oneLineResponse{};
+    getline(ss, oneLineResponse, '\n');
+    if (oneLineResponse == "Status: 0")
+    {
+        output << "Request to get full board from server failed, exiting." << std::endl;
+        exit(1);
+    }
+
+    for (int y{}; y < 8; y++)
+    {
+        for (int x{}; x < 8; x++)
+        {
+            std::string pieceString;
+            ss >> pieceString;
+            output << pieceString << std::endl;
+            if (pieceString == "EE")
+            {
+                localBoard[x][y] = Piece{};
+            }
+            else
+            {
+                bool isWhite = (pieceString[0] == 'W') ? true : false;
+                PieceType type{};
+                std::string texturePath{};
+                switch (pieceString[1])
+                {
+                    case 'P':
+                        type = PieceType::Pawn;
+                        texturePath = "models/pawn.png";
+                        break;
+                    case 'R':
+                        type = PieceType::Rook;
+                        texturePath = "models/rook.png";
+                        break;
+                    case 'N':
+                        type = PieceType::Knight;
+                        texturePath = "models/knight.png";
+                        break;
+                    case 'B':
+                        type = PieceType::Bishop;
+                        texturePath = "models/bishop.png";
+                        break;
+                    case 'Q':
+                        type = PieceType::Queen;
+                        texturePath = "models/queen.png";
+                        break;
+                    case 'K':
+                        type = PieceType::King;
+                        texturePath = "models/king.png";
+                        break;
+                    default:
+                        type = PieceType::UNKNOWN;
+                        break;
+                }
+                localBoard[x][y] = Piece(texturePath, type, isWhite);
+            }
+        }
+    }
 
     output << "Client connected" << std::endl;
 }
@@ -99,13 +153,6 @@ struct RendererDeleter
 
 void GameClient::run()
 {
-    if (game == nullptr)
-    {
-        output << "Error: Game is not initialized." << std::endl;
-        exit(1);
-        return;
-    }
-
     ResourceManager& instance = ResourceManager::getInstance();
     output << "Initializing SDL" << std::endl;
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -393,13 +440,13 @@ void GameClient::run()
             {
                 for (int y{}; y < 8; y++)
                 {
-                    if (game->isMoveValid(chosenX, chosenY, x, y, localBoard))
-                    {
-                        circle.x = xStart + x * size;
-                        circle.y = yStart + y * size;
-                        SDL_SetTextureColorMod(dot, 0, 255, 0);
-                        SDL_RenderCopy(renderer.get(), dot, NULL, &circle);
-                    }
+                    // if (game->isMoveValid(chosenX, chosenY, x, y, localBoard))
+                    // {
+                    //     circle.x = xStart + x * size;
+                    //     circle.y = yStart + y * size;
+                    //     SDL_SetTextureColorMod(dot, 0, 255, 0);
+                    //     SDL_RenderCopy(renderer.get(), dot, NULL, &circle);
+                    // }
                 }
             }
         }
@@ -487,7 +534,7 @@ void GameClient::closeSocket()
 
 bool GameClient::tryMove(int chosenX, int chosenY, int boardX, int boardY)
 {
-    std::string move = "MOVE: from{ " + std::to_string(chosenX) + " " + std::to_string(chosenY) + " } to{ " + std::to_string(boardX) + " " + std::to_string(boardY) + " }";
+    std::string move = "Request: MOVE\nfrom{ " + std::to_string(chosenX) + " " + std::to_string(chosenY) + " } to{ " + std::to_string(boardX) + " " + std::to_string(boardY) + " }";
     output << "Sending request to server: [" << move << "]" << std::endl;
     std::string response = sendAndReceiveToServer(move);
     output << "Response from server: " << std::endl << "{" << response << "}" << std::endl;

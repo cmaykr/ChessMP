@@ -134,14 +134,20 @@ void GameServer::run()
                     }
                     if (N == 0)
                     {
-                        std::cerr << "Peer socket not available, closing connection" << std::endl;
+                        std::cerr << "Peer socket not available, closing connection and exiting." << std::endl;
                         closeSockets();
                         exit(2);
                     }
                     std::string message {buf, N};
                     output << "Received message: " << message << " From FD: " << fds[i].fd << std::endl;
 
-                    if (message.substr(0, message.find(':')) == "MOVE")
+                    std::stringstream responseStream {message};
+                    std::string request;
+                    getline(responseStream, request, '\n');
+                    request = request.substr(message.find(':')+2, request.size());
+
+                    output << request << std::endl;
+                    if (request == "MOVE")
                     {
                         int startX{}, startY{};
                         int targetX{}, targetY{};
@@ -176,7 +182,7 @@ void GameServer::run()
                         std::string test = "From: " + std::to_string(startX) + " " + std::to_string(startY) + " To: " + std::to_string(targetX) + " " + std::to_string(targetY);
                         //output << test << std::endl;
                         std::stringstream response{};
-                        response << message << std::endl << "Status: ";
+                        response << "Status: ";
                         if (tryMove(startX, startY, targetX, targetY, gameBoard))
                         {
                             response << "1";
@@ -185,13 +191,13 @@ void GameServer::run()
                         {
                             response << "0";
                         }
-                        response << std::endl;
+                        response << std::endl << message << std::endl;
                         message = response.str();
 
                         send(clientOneFD, message.c_str(), message.size(), 0);
                         send(clientTwoFD, message.c_str(), message.size(), 0);
                     }
-                    else if (message.substr(0, message.find(':')) == "Request")
+                    else if (request == "Connect")
                     {
                         std::string response = "Status: 1\nPlayer: ";
                         if (clientOneFD == fds[i].fd)
@@ -205,9 +211,58 @@ void GameServer::run()
                         response += "\n";
                         send(fds[i].fd, response.c_str(), response.size(), 0);
                     }
+                    else if (request == "Full board")
+                    {
+                        std::string response = "Status: 1\n";
+                        for (int y{}; y < 8; y++)
+                        {
+                            for (int x{}; x < 8; x++)
+                            {
+                                if (!gameBoard[x][y].isEmpty())
+                                {
+                                    response += (gameBoard[x][y].isPieceWhite() ? "W" : "B");
+                                    switch (gameBoard[x][y].getType())
+                                    {
+                                        case PieceType::Pawn:
+                                            response += "P";
+                                            break;
+                                        case PieceType::Rook:
+                                            response += "R";
+                                            break;
+                                        case PieceType::Knight:
+                                            response += "N";
+                                            break;
+                                        case PieceType::Bishop:
+                                            response += "B";
+                                            break;
+                                        case PieceType::Queen:
+                                            response += "Q";
+                                            break;
+                                        case PieceType::King:
+                                            response += "K";
+                                            break;
+                                        default:
+                                            response += "U";
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    response += "EE";
+                                }
+                                response += " ";
+                            }
+                            response += "\n";
+                        }
+                        response += "\n";
+                        output << "Full board:" << response << std::endl;
+                        send(fds[i].fd, response.c_str(), response.size(), 0);
+                    }
                     else
                     {
-                        output << "Unknown message" << std::endl;
+                        std::string response = "Status: 0\n Invalid request\n";
+                        
+                        send(fds[i].fd, response.c_str(), response.size(), 0);
                     }
                 }
                 else

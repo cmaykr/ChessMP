@@ -6,13 +6,10 @@
 
 #include "piece.hpp"
 #include "gameClient.hpp"
-#include "gameServer.hpp"
 
 int main()
 {
-    GameServer game {std::cout, "8080"};
-
-    GameClient gameClient{&game, std::cout, "localhost", "8080"};
+    GameClient gameClient{std::cout, "localhost", "8080"};
 
     gameClient.run();
     return 0;
