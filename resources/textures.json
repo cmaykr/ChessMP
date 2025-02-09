@@ -6,6 +6,8 @@
         "bishop": "bishop.png",
         "queen": "queen.png",
         "rook": "rook.png",
-        "king": "king.png"
+        "king": "king.png",
+        "small_Dot": "Small_Dot.png",
+        "squareDot": "SquareDot.png"
     }
 }

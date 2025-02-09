@@ -187,16 +187,14 @@ void GameClient::run()
 
     output << "Loading resources" << std::endl;
 
-    instance.loadTexturesFromFile("resources/pieceTextures.json");
+    instance.loadTexturesFromFile("resources/textures.json");
     SDL_Texture *pawnTex = instance.getTexture("models/pawn.png");
     SDL_Texture *rookTex = instance.getTexture("models/rook.png");
     SDL_Texture *knightTex = instance.getTexture("models/knight.png");
     SDL_Texture *bishopTex = instance.getTexture("models/bishop.png");
     SDL_Texture *queenTex = instance.getTexture("models/queen.png");
     SDL_Texture *kingTex = instance.getTexture("models/king.png");
-    instance.loadTexture("models/Small_Dot.png");
     SDL_Texture *dotTex = instance.getTexture("models/Small_Dot.png");
-    instance.loadTexture("models/SquareDot.png");
     SDL_Texture *square = instance.getTexture("models/SquareDot.png");
     SDL_Rect pos;
     pos.h = 40;
