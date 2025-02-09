@@ -1,24 +1,35 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
     "configurations": [
-      {
-        "type": "cppdbg",
-        "request": "launch",
-        "name": "Launch chessClient",
-        "program": "${workspaceFolder}/bin/chessClient",
-        "preLaunchTask": "build chessClient"
-      }
+        {
+            "name": "Launch game server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chessServer",
+            "cwd": "${workspaceFolder}",
+            "args": ["8080"],
+            "MIMode": "gdb",
+        },
+        {
+            "name": "Launch game client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chessClient",
+            "cwd": "${workspaceFolder}",
+            "args": ["localhost", "8080"],
+            "MIMode": "gdb",
+        }
+
     ],
-    "cwd": "${workspaceFolder}",
-    "inputs": [
-      {
-      "type": "pickString",
-      "id": "executableName",
-      "description": "Select the executable to debug",
-      "options": [
-        "chessClient",
-        "chessMP",
-        "chessServer"
-      ]
-      }
+    "preLaunchTask": "Build",
+    "compounds": [
+        {
+            "name": "Launch full game",
+            "configurations": ["Launch game server", "Launch game client", "Launch game client"],
+            "preLaunchTask": "Build"
+        }
     ]
-  }
+}
