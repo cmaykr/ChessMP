@@ -28,7 +28,7 @@
     "preLaunchTask": "Build",
     "compounds": [
         {
-            "name": "Launch full game",
+            "name": "Launch full game debug",
             "configurations": ["Launch game server", "Launch game client", "Launch game client"],
             "preLaunchTask": "Build",
             "stopAtEntry": false,

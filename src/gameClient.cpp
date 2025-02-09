@@ -26,6 +26,7 @@ GameClient::GameClient(std::ostream & output, std::string const& serverAddress, 
         exit(1);
     }
 
+    bool success {false};
     for (rp = result; rp; rp = rp->ai_next)
     {
         serverFD = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -35,6 +36,7 @@ GameClient::GameClient(std::ostream & output, std::string const& serverAddress, 
         }
         if (connect(serverFD, rp->ai_addr, rp->ai_addrlen) == 0)
         {
+            success = true;
             break;
         }
         
@@ -42,6 +44,12 @@ GameClient::GameClient(std::ostream & output, std::string const& serverAddress, 
     }
 
     freeaddrinfo(result);
+
+    if (success == false)
+    {
+        output << "Connection to server failed, exiting." << std::endl;
+        exit(1);
+    }
 
     std::string response = sendAndReceiveToServer("Request: Connect");
     std::stringstream ss{};
@@ -178,28 +186,16 @@ void GameClient::run()
     box.y = 20;
 
     output << "Loading resources" << std::endl;
-    Piece pawn {"models/pawn.png", PieceType::Pawn, true};
-    Piece rook {"models/rook.png", PieceType::Rook, true};
-    Piece knight {"models/knight.png", PieceType::Knight, true};
-    Piece bishop {"models/bishop.png", PieceType::Bishop, true};
-    Piece queen {"models/queen.png", PieceType::Queen, true};
-    Piece king {"models/king.png", PieceType::King, true};
-    Piece pawnB {"models/pawn.png", PieceType::Pawn, false};
-    Piece rookB {"models/rook.png", PieceType::Rook, false};
-    Piece knightB {"models/knight.png", PieceType::Knight, false};
-    Piece bishopB {"models/bishop.png", PieceType::Bishop, false};
-    Piece queenB {"models/queen.png", PieceType::Queen, false};
-    Piece kingB {"models/king.png", PieceType::King, false};
 
     instance.loadTexturesFromFile("resources/pieceTextures.json");
-    SDL_Texture *pawnTex = instance.getTexture(pawn.getTexture());
-    SDL_Texture *rookTex = instance.getTexture(rook.getTexture());
-    SDL_Texture *knightTex = instance.getTexture(knight.getTexture());
-    SDL_Texture *bishopTex = instance.getTexture(bishop.getTexture());
-    SDL_Texture *queenTex = instance.getTexture(queen.getTexture());
-    SDL_Texture *kingTex = instance.getTexture(king.getTexture());
+    SDL_Texture *pawnTex = instance.getTexture("models/pawn.png");
+    SDL_Texture *rookTex = instance.getTexture("models/rook.png");
+    SDL_Texture *knightTex = instance.getTexture("models/knight.png");
+    SDL_Texture *bishopTex = instance.getTexture("models/bishop.png");
+    SDL_Texture *queenTex = instance.getTexture("models/queen.png");
+    SDL_Texture *kingTex = instance.getTexture("models/king.png");
     instance.loadTexture("models/Small_Dot.png");
-    SDL_Texture *dot = instance.getTexture("models/Small_Dot.png");
+    SDL_Texture *dotTex = instance.getTexture("models/Small_Dot.png");
     instance.loadTexture("models/SquareDot.png");
     SDL_Texture *square = instance.getTexture("models/SquareDot.png");
     SDL_Rect pos;
@@ -445,8 +441,8 @@ void GameClient::run()
                     {
                         circle.x = xStart + x * size;
                         circle.y = yStart + y * size;
-                        SDL_SetTextureColorMod(dot, 0, 255, 0);
-                        SDL_RenderCopy(renderer.get(), dot, NULL, &circle);
+                        SDL_SetTextureColorMod(dotTex, 0, 255, 0);
+                        SDL_RenderCopy(renderer.get(), dotTex, NULL, &circle);
                     }
                 }
             }

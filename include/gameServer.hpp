@@ -15,7 +15,7 @@ class GameServer
 public:
     /// @brief Initializes the game board with pieces in their starting positions, as they are in a standard chess game.
     /// The port parameter sets the port the server listens on for incoming connections.
-    GameServer(std::ostream & output, std::string const& port);
+    GameServer(std::ostream & output, int port);
     ~GameServer();
 
     void run();
@@ -47,4 +47,5 @@ private:
     int serverFD{-1};
     int clientOneFD{-1};
     int clientTwoFD{-1};
+    int port;
 };

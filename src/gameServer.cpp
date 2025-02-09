@@ -17,8 +17,8 @@
 #include "resourceManager.hpp"
 #include "pieceMethods.hpp"
 
-GameServer::GameServer(std::ostream & output, std::string const& port)
-    : gameBoard{}, output{output}, _isPlayerWhitesTurn{true}
+GameServer::GameServer(std::ostream & output, int port)
+    : gameBoard{}, output{output}, _isPlayerWhitesTurn{true}, port(port)
 {
     Piece pawn {"models/pawn.png", PieceType::Pawn, true};
     Piece rook {"models/rook.png", PieceType::Rook, true};
@@ -77,7 +77,8 @@ void GameServer::run()
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    int err = getaddrinfo(NULL, "8080", &hints, &result);
+    std::string portString {std::to_string(port)};
+    int err = getaddrinfo(NULL, portString.c_str(), &hints, &result);
     if (err < 0)
     {
         output << "Error getting address " << strerror(errno) << std::endl;
