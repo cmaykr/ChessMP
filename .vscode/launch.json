@@ -21,6 +21,7 @@
             "cwd": "${workspaceFolder}",
             "args": ["localhost", "8080"],
             "MIMode": "gdb",
+            "stopAtEntry": false
         }
 
     ],
@@ -29,7 +30,8 @@
         {
             "name": "Launch full game",
             "configurations": ["Launch game server", "Launch game client", "Launch game client"],
-            "preLaunchTask": "Build"
+            "preLaunchTask": "Build",
+            "stopAtEntry": false,
         }
     ]
 }
